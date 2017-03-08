@@ -69,3 +69,12 @@ fun commit(root: Path, message: String, date: Date, author: String) {
     tree.writeToDisk(gitDir.resolve(OBJECTS_PATH))
     Commit(message, previous, tree, date, author).writeToDisk(gitDir.resolve(COMMITS_PATH))
 }
+
+/**
+ * Record changes to the repository
+ */
+@Throws(IOException::class)
+fun commit(root: Path, message: String) {
+    // TODO: commit(root, message, current date, author from git settings)
+    throw UnsupportedOperationException("not implemented")
+}

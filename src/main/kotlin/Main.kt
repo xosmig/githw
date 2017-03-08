@@ -1,5 +1,4 @@
-import org.apache.commons.cli.Options
-import java.nio.file.Path
+
 import java.nio.file.Paths
 
 val APP_NAME = "githw"

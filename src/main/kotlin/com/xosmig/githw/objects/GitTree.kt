@@ -1,7 +1,10 @@
 package com.xosmig.githw.objects
 
 import com.xosmig.githw.HASH_PREF_LENGTH
+import org.apache.commons.codec.digest.DigestUtils
+import java.io.ByteArrayOutputStream
 import java.io.IOError
+import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -14,14 +17,14 @@ abstract class GitTree: GitObject() {
 private class GitTreeNotLoaded
     private constructor(private val sha256: String, private val objectsDir: Path): GitTree() {
 
+    override fun sha256(): String = sha256
+
+    override fun writeToDisk(objectsDir: Path) = Unit
+
     override val loaded: GitTreeLoaded by lazy {
         // TODO
         throw UnsupportedOperationException("not implemented")
     }
-
-    override fun sha256(): String = sha256
-
-    override fun writeToDisk(objectsDir: Path) = Unit
 }
 
 class GitTreeLoaded private constructor(children: Map<String, GitObject>): GitTree() {
@@ -75,19 +78,25 @@ class GitTreeLoaded private constructor(children: Map<String, GitObject>): GitTr
     }
 
     private fun content(): ByteArray {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
+        // unfortunately, Kotlin still doesn't have any good syntax to handle multiple resources
+        ByteArrayOutputStream().use {
+            val baos = it
+            ObjectOutputStream(baos).use {
+                it.writeInt(children.size)
+                for ((name, obj) in children) {
+                    it.writeObject(name)
+                    it.writeObject(obj.sha256())
+                }
+            }
+            return baos.toByteArray()
+        }
     }
 
-    override fun sha256(): String {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
-    }
+    override fun sha256(): String = DigestUtils.sha256Hex(content())
 
     @Throws(IOError::class)
     private fun writeToFile(path: Path) {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
+        Files.write(path, content())
     }
 
     @Throws(IOError::class)
