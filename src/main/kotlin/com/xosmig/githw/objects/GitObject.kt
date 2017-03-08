@@ -9,4 +9,6 @@ abstract class GitObject {
      */
     @Throws(IOError::class)
     abstract fun writeToDisk(objectsDir: Path)
+
+    abstract fun sha256(): String
 }

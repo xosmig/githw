@@ -7,20 +7,24 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-abstract class GitTree : GitObject() {
+abstract class GitTree: GitObject() {
     abstract val loaded: GitTreeLoaded
 }
 
-private class GitTreeNotLoaded private constructor(val path: Path) : GitTree() {
+private class GitTreeNotLoaded
+    private constructor(private val sha256: String, private val objectsDir: Path): GitTree() {
+
     override val loaded: GitTreeLoaded by lazy {
         // TODO
         throw UnsupportedOperationException("not implemented")
     }
 
+    override fun sha256(): String = sha256
+
     override fun writeToDisk(objectsDir: Path) = Unit
 }
 
-class GitTreeLoaded private constructor(children: Map<String, GitObject>) : GitTree() {
+class GitTreeLoaded private constructor(children: Map<String, GitObject>): GitTree() {
     companion object {
         private val emptyNormalizedPath = Paths.get(".").normalize()
     }
@@ -70,7 +74,12 @@ class GitTreeLoaded private constructor(children: Map<String, GitObject>) : GitT
         }
     }
 
-    private fun sha256(): String {
+    private fun content(): ByteArray {
+        // TODO
+        throw UnsupportedOperationException("not implemented")
+    }
+
+    override fun sha256(): String {
         // TODO
         throw UnsupportedOperationException("not implemented")
     }
