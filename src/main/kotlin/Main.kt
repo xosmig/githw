@@ -1,4 +1,6 @@
 
+import java.io.ObjectOutputStream
+import java.nio.file.Files
 import java.nio.file.Paths
 
 val APP_NAME = "githw"
@@ -39,24 +41,17 @@ private val COMMANDS = hashMapOf(
         "init" to InitCommand()
 )
 
-//fun main(args: Array<String>) {
-//    if (args.isEmpty()) {
-//        println("see $APP_NAME help")
-//        return
-//    }
-//
-//    val commandName = args[0]
-//    val command = COMMANDS[commandName]
-//    if (command != null) {
-//        command.run(args.asList().subList(1, args.size))
-//    } else {
-//        println("$APP_NAME: '$commandName' is not a valid command. See '$APP_NAME help'")
-//    }
-//}
-
 fun main(args: Array<String>) {
-    for (dir in Paths.get("hello/world/qwer.txt").parent) {
-        println(dir)
+    if (args.isEmpty()) {
+        println("see $APP_NAME help")
+        return
     }
-    println(Paths.get("qwer.txt").parent)
+
+    val commandName = args[0]
+    val command = COMMANDS[commandName]
+    if (command != null) {
+        command.run(args.asList().subList(1, args.size))
+    } else {
+        println("$APP_NAME: '$commandName' is not a valid command. See '$APP_NAME help'")
+    }
 }

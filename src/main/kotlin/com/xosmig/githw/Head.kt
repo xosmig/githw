@@ -1,5 +1,6 @@
 package com.xosmig.githw
 
+import com.xosmig.githw.refs.Commit
 import java.io.IOException
 import java.nio.file.Path
 

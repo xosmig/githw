@@ -1,13 +1,12 @@
-package com.xosmig.githw
+package com.xosmig.githw.refs
 
-import com.xosmig.githw.objects.GitFileLoaded
+import com.xosmig.githw.*
+import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitTree
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-
-class Tag(val name: String, val root: GitTree)
 
 class Commit(val message: String,
              val previous: Commit?,
@@ -43,6 +42,7 @@ class Commit(val message: String,
     }
 }
 
+
 /**
  * Record changes to the repository
  */
@@ -56,11 +56,11 @@ fun commit(root: Path, message: String, date: Date, author: String) {
     val head = Head.readFromFile(headPath)
 
     val previous = head.getCommit()
-    val tree = previous.root.loaded
+    val tree = previous.root.load() as GitTree
 
     for (entry in index.entries) {
         when (entry) {
-            is IndexEditFile -> tree.putFile(entry.path, GitFileLoaded(entry.content))
+            is IndexEditFile -> tree.putFile(entry.path, GitFile(entry.content))
             is IndexRemoveFile -> tree.removeFile(entry.path)
             else -> throw UnsupportedOperationException("Unknown IndexEntry type")
         }

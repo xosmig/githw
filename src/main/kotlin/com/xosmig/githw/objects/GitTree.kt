@@ -10,46 +10,27 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-abstract class GitTree: GitObject() {
-    abstract val loaded: GitTreeLoaded
-}
-
-private class GitTreeNotLoaded
-    private constructor(private val sha256: String, private val objectsDir: Path): GitTree() {
-
-    override fun sha256(): String = sha256
-
-    override fun writeToDisk(objectsDir: Path) = Unit
-
-    override val loaded: GitTreeLoaded by lazy {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
-    }
-}
-
-class GitTreeLoaded private constructor(children: Map<String, GitObject>): GitTree() {
+class GitTree internal constructor(children: Map<String, GitObject>): GitObject() {
     companion object {
         private val emptyNormalizedPath = Paths.get(".").normalize()
     }
 
-    override val loaded: GitTreeLoaded = this
-
     private val children = HashMap(children)
 
-    fun createPath(path: Path?): GitTreeLoaded = createPathImpl(path?.normalize())
+    fun createPath(path: Path?): GitTree = createPathImpl(path?.normalize())
 
     /**
      * @param[path] normalized path to resolve
      */
-    private fun createPathImpl(path: Path?): GitTreeLoaded {
+    private fun createPathImpl(path: Path?): GitTree {
         if (path == null || path == emptyNormalizedPath) {
             return this
         }
         val nextPath = path.first()
-        val next = children[nextPath.toString()]
+        val next = children[nextPath.toString()]?.load()
         val result = when (next) {
-            null -> GitTreeLoaded(emptyMap())
-            is GitTree -> next.loaded
+            null -> GitTree(emptyMap())
+            is GitTree -> next
             else -> throw IllegalArgumentException("Invalid path: '$path'")
         }
         children[nextPath.toString()] = result
@@ -68,10 +49,10 @@ class GitTreeLoaded private constructor(children: Map<String, GitObject>): GitTr
             }
         } else {
             val nextPath = path.first()
-            val next = children[nextPath.toString()] as? GitTree
+            val next = children[nextPath.toString()]?.load() as? GitTree
                     ?: throw IllegalArgumentException("Invalid path: '$path'")
-            next.loaded.removeFile(nextPath.relativize(path))
-            if (next.loaded.children.isEmpty()) {
+            next.removeFile(nextPath.relativize(path))
+            if (next.children.isEmpty()) {
                 children.remove(nextPath.toString())
             }
         }
