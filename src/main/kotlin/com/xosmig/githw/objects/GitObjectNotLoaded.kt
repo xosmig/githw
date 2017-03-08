@@ -1,26 +1,25 @@
 package com.xosmig.githw.objects
 
-import com.xosmig.githw.HASH_PREF_LENGTH
 import java.io.IOError
 import java.io.ObjectInputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 
-class GitObjectNotLoaded(private val sha256: String, private val objectsDir: Path): GitObject() {
+class GitObjectNotLoaded(gitDir: Path, private val sha256: String): GitObject(gitDir) {
     override fun sha256(): String = sha256
 
     @Throws(IOError::class)
-    override fun writeToDisk(objectsDir: Path) = Unit
+    override fun writeToDisk() = Unit
 
-    @Throws(IOError::class)
-    override fun load(): GitObject {
-        val path = objectsDir
-                .resolve(sha256.take(HASH_PREF_LENGTH))
-                .resolve(sha256.drop(HASH_PREF_LENGTH))
-        Files.newInputStream(path).use {
+    override val loaded by lazy {
+        Files.newInputStream(getObjectFile()).use {
             ObjectInputStream(it).use {
-                return it.readObject() as GitObject
+                val type = it.readObject() as String
+                when (type) {
+                    GitFile::class.java.name -> GitFile.load(gitDir, it)
+                    GitTree::class.java.name -> GitTree.load(gitDir, it)
+                    else -> throw ClassNotFoundException("'$type' is not a valid GitObject class")
+                }
             }
         }
     }

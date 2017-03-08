@@ -1,22 +1,21 @@
 package com.xosmig.githw.objects
 
-import com.xosmig.githw.HASH_PREF_LENGTH
 import org.apache.commons.codec.digest.DigestUtils
-import java.io.ByteArrayOutputStream
-import java.io.IOError
-import java.io.ObjectOutputStream
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-class GitTree internal constructor(children: Map<String, GitObject>): GitObject() {
-    companion object {
-        private val emptyNormalizedPath = Paths.get(".").normalize()
-    }
+class GitTree private constructor(gitDir: Path, children: Map<String, GitObject>): GitObject(gitDir) {
 
-    private val children = HashMap(children)
+    private val children: MutableMap<String, GitObject> = HashMap(children)
 
+    override val loaded: GitObject = this
+
+    /**
+     * TODO
+     */
     fun createPath(path: Path?): GitTree = createPathImpl(path?.normalize())
 
     /**
@@ -27,9 +26,9 @@ class GitTree internal constructor(children: Map<String, GitObject>): GitObject(
             return this
         }
         val nextPath = path.first()
-        val next = children[nextPath.toString()]?.load()
+        val next = children[nextPath.toString()]?.loaded
         val result = when (next) {
-            null -> GitTree(emptyMap())
+            null -> GitTree(gitDir, HashMap())
             is GitTree -> next
             else -> throw IllegalArgumentException("Invalid path: '$path'")
         }
@@ -49,7 +48,7 @@ class GitTree internal constructor(children: Map<String, GitObject>): GitObject(
             }
         } else {
             val nextPath = path.first()
-            val next = children[nextPath.toString()]?.load() as? GitTree
+            val next = children[nextPath.toString()]?.loaded as? GitTree
                     ?: throw IllegalArgumentException("Invalid path: '$path'")
             next.removeFile(nextPath.relativize(path))
             if (next.children.isEmpty()) {
@@ -58,36 +57,49 @@ class GitTree internal constructor(children: Map<String, GitObject>): GitObject(
         }
     }
 
-    private fun content(): ByteArray {
-        // unfortunately, Kotlin still doesn't have any good syntax to handle multiple resources
+    override fun sha256(): String {
         ByteArrayOutputStream().use {
             val baos = it
             ObjectOutputStream(baos).use {
-                it.writeInt(children.size)
-                for ((name, obj) in children) {
-                    it.writeObject(name)
-                    it.writeObject(obj.sha256())
-                }
+                writeContentTo(it)
             }
-            return baos.toByteArray()
+            return DigestUtils.sha256Hex(baos.toByteArray())
         }
     }
 
-    override fun sha256(): String = DigestUtils.sha256Hex(content())
-
-    @Throws(IOError::class)
-    private fun writeToFile(path: Path) {
-        Files.write(path, content())
+    @Throws(IOException::class)
+    private fun writeContentTo(out: ObjectOutputStream) {
+        out.writeInt(children.size)
+        for ((name, obj) in children) {
+            out.writeObject(name)
+            out.writeObject(obj.sha256())
+        }
     }
 
-    @Throws(IOError::class)
-    override fun writeToDisk(objectsDir: Path) {
+    @Throws(IOException::class)
+    override fun writeToDisk() {
         for (child in children.values) {
-            child.writeToDisk(objectsDir)
+            child.writeToDisk()
         }
-        val sha256 = sha256()
-        val dir = objectsDir.resolve(sha256.take(HASH_PREF_LENGTH))
-        Files.createDirectory(dir)
-        writeToFile(dir.resolve(sha256.drop(HASH_PREF_LENGTH)))
+        Files.newOutputStream(getObjectFile()).use {
+            ObjectOutputStream(it).use {
+                it.writeObject(javaClass.name)
+                writeContentTo(it)
+            }
+        }
+    }
+
+    companion object {
+        private val emptyNormalizedPath = Paths.get(".").normalize()
+
+        fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
+            val count = ins.readInt()
+            val children = HashMap<String, GitObjectNotLoaded>()
+            for (i in 1..count) {
+                val name = ins.readObject() as String
+                children[name] = GitObjectNotLoaded(gitDir, ins.readObject() as String)
+            }
+            return GitTree(gitDir, children)
+        }
     }
 }

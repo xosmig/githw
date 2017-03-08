@@ -1,22 +1,25 @@
 package com.xosmig.githw.objects
 
-import com.xosmig.githw.HASH_PREF_LENGTH
 import org.apache.commons.codec.digest.DigestUtils
-import java.io.DataOutputStream
+import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-class GitFile(private val content: ByteArray): GitObject() {
+class GitFile(gitDir: Path, private val content: ByteArray): GitObject(gitDir) {
+    companion object {
+        fun load(gitDir: Path, ins: ObjectInputStream): GitFile = GitFile(gitDir, ins.readObject() as ByteArray)
+    }
+
     override fun sha256(): String = DigestUtils.sha256Hex(content)
 
-    override fun writeToDisk(objectsDir: Path) {
-        val sha256 = sha256()
-        val dir = objectsDir.resolve(sha256.take(HASH_PREF_LENGTH))
-        Files.createDirectory(dir)
-        Files.newOutputStream(dir.resolve(sha256.drop(HASH_PREF_LENGTH))).use {
+    override val loaded: GitObject = this
+
+    override fun writeToDisk() {
+        Files.newOutputStream(getObjectFile()).use {
             ObjectOutputStream(it).use {
-                it.writeObject(this)
+                it.writeObject(javaClass.name)
+                it.writeObject(content)
             }
         }
     }

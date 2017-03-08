@@ -56,17 +56,17 @@ fun commit(root: Path, message: String, date: Date, author: String) {
     val head = Head.readFromFile(headPath)
 
     val previous = head.getCommit()
-    val tree = previous.root.load() as GitTree
+    val tree = previous.root.loaded as GitTree
 
     for (entry in index.entries) {
         when (entry) {
-            is IndexEditFile -> tree.putFile(entry.path, GitFile(entry.content))
+            is IndexEditFile -> tree.putFile(entry.path, GitFile(gitDir, entry.content))
             is IndexRemoveFile -> tree.removeFile(entry.path)
             else -> throw UnsupportedOperationException("Unknown IndexEntry type")
         }
     }
 
-    tree.writeToDisk(gitDir.resolve(OBJECTS_PATH))
+    tree.writeToDisk()
     Commit(message, previous, tree, date, author).writeToDisk(gitDir.resolve(COMMITS_PATH))
 }
 
