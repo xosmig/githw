@@ -1,17 +1,25 @@
 package com.xosmig.githw.objects
 
-import org.apache.commons.codec.digest.DigestUtils
 import java.io.*
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.*
+import com.xosmig.githw.utils.Sha256
 
-class GitTree private constructor(gitDir: Path, children: Map<String, GitObject>): GitObject(gitDir) {
+class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(gitDir) {
 
     private val children: MutableMap<String, GitObject> = HashMap(children)
 
-    override val loaded: GitObject = this
+    companion object {
+        fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
+            val count = ins.readInt()
+            val children = HashMap<String, GitObjectFromDisk>()
+            for (i in 1..count) {
+                val name = ins.readObject() as String
+                children[name] = GitObjectFromDisk(gitDir, ins.readObject() as Sha256)
+            }
+            return GitTree(gitDir, children)
+        }
+    }
 
     /**
      * TODO
@@ -22,7 +30,7 @@ class GitTree private constructor(gitDir: Path, children: Map<String, GitObject>
      * @param[path] normalized path to resolve
      */
     private fun createPathImpl(path: Path?): GitTree {
-        if (path == null || path == emptyNormalizedPath) {
+        if (path == null ||  path.fileName.toString() == "") {
             return this
         }
         val nextPath = path.first()
@@ -36,9 +44,9 @@ class GitTree private constructor(gitDir: Path, children: Map<String, GitObject>
         return result.createPathImpl(nextPath.relativize(path))
     }
 
-    fun putFile(path: Path, file: GitFile) {
+    fun putFile(path: Path, content: ByteArray) {
         val dir = createPath(path.parent)
-        dir.children.put(path.fileName.toString(), file)
+        dir.children.put(path.fileName.toString(), GitFile(gitDir, content))
     }
 
     fun removeFile(path: Path) {
@@ -57,49 +65,22 @@ class GitTree private constructor(gitDir: Path, children: Map<String, GitObject>
         }
     }
 
-    override fun sha256(): String {
-        ByteArrayOutputStream().use {
-            val baos = it
-            ObjectOutputStream(baos).use {
-                writeContentTo(it)
-            }
-            return DigestUtils.sha256Hex(baos.toByteArray())
-        }
-    }
+    fun getChild(name: String): GitObject = children[name]
+            ?: throw NoSuchElementException("Child '$name' not found")
 
     @Throws(IOException::class)
-    private fun writeContentTo(out: ObjectOutputStream) {
+    override fun writeContentTo(out: ObjectOutputStream) {
         out.writeInt(children.size)
         for ((name, obj) in children) {
             out.writeObject(name)
-            out.writeObject(obj.sha256())
+            out.writeObject(obj.getSha256())
         }
     }
 
-    @Throws(IOException::class)
     override fun writeToDisk() {
+        super.writeToDisk()
         for (child in children.values) {
             child.writeToDisk()
-        }
-        Files.newOutputStream(getObjectFile()).use {
-            ObjectOutputStream(it).use {
-                it.writeObject(javaClass.name)
-                writeContentTo(it)
-            }
-        }
-    }
-
-    companion object {
-        private val emptyNormalizedPath = Paths.get(".").normalize()
-
-        fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
-            val count = ins.readInt()
-            val children = HashMap<String, GitObjectNotLoaded>()
-            for (i in 1..count) {
-                val name = ins.readObject() as String
-                children[name] = GitObjectNotLoaded(gitDir, ins.readObject() as String)
-            }
-            return GitTree(gitDir, children)
         }
     }
 }

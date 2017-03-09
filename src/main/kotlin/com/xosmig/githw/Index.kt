@@ -11,8 +11,14 @@ class IndexRemoveFile(path: Path) : IndexEntry(path)
 
 class Index(val entries: List<IndexEntry>) {
     companion object {
+//        @Throws(IOException::class)
+//        private fun readFromFile(path: Path): Index {
+//            // TODO
+//            throw UnsupportedOperationException("not implemented")
+//        }
+
         @Throws(IOException::class)
-        fun readFromFile(path: Path): Index {
+        fun load(gitDir: Path): Index {
             // TODO
             throw UnsupportedOperationException("not implemented")
         }

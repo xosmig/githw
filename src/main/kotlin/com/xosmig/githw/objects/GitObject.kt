@@ -1,8 +1,8 @@
 package com.xosmig.githw.objects
 
-import com.xosmig.githw.HASH_PREF_LENGTH
 import com.xosmig.githw.OBJECTS_PATH
-import java.io.IOError
+import com.xosmig.githw.utils.Sha256
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -12,17 +12,17 @@ abstract class GitObject(protected val gitDir: Path) {
             get() = gitDir.resolve(OBJECTS_PATH)
 
     protected fun getObjectFile(): Path {
-        val sha256 = sha256()
-        val dir = objectsDir.resolve(sha256.take(HASH_PREF_LENGTH))
-        Files.createDirectory(dir)
-        return dir.resolve(sha256.drop(HASH_PREF_LENGTH))
+        val sha256 = getSha256()
+        val dir = objectsDir.resolve(sha256.pref())
+        Files.createDirectories(dir)
+        return dir.resolve(sha256.suf())
     }
 
     /** Write all changes in this object and all sub-objects to disk. */
-    @Throws(IOError::class)
+    @Throws(IOException::class)
     abstract fun writeToDisk()
 
-    abstract fun sha256(): String
+    abstract fun getSha256(): Sha256
 
-    abstract val loaded: GitObject
+    abstract val loaded: GitObjectLoaded
 }
