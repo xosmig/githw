@@ -1,5 +1,7 @@
+import com.xosmig.githw.commands.add
 import com.xosmig.githw.commands.commit
 import com.xosmig.githw.commands.init
+import com.xosmig.githw.commands.remove
 import java.nio.file.Paths
 
 val APP_NAME = "githw"
@@ -58,10 +60,44 @@ private class CommitCommand: Command("Record changes to the repository") {
     }
 }
 
+private class RemoveCommand: Command("Remove files from the working tree") {
+    override fun run(args: List<String>) {
+        when (args.size) {
+            0 -> {
+                println("TODO: 4")
+                System.exit(2)
+            }
+            1 -> remove(Paths.get(""), Paths.get(args[0]))
+            else -> {
+                println("TODO: 5")
+                System.exit(2)
+            }
+        }
+    }
+}
+
+private class AddCommand: Command("Add file contents to the index") {
+    override fun run(args: List<String>) {
+        when (args.size) {
+            0 -> {
+                println("TODO: 6")
+                System.exit(2)
+            }
+            1 -> add(Paths.get(""), Paths.get(args[0]))
+            else -> {
+                println("TODO: 7")
+                System.exit(2)
+            }
+        }
+    }
+}
+
 private val COMMANDS = hashMapOf(
         "help" to HelpCommand(),
         "init" to InitCommand(),
-        "commit" to CommitCommand()
+        "commit" to CommitCommand(),
+        "add" to AddCommand(),
+        "remove" to RemoveCommand()
 )
 
 fun main(args: Array<String>) {

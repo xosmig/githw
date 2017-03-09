@@ -7,9 +7,10 @@ import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
-abstract class IndexEntry private constructor(gitDir: Path, val pathToFile: Path): Serializable {
-    protected @Transient var gitDir: Path = gitDir
+abstract class IndexEntry private constructor(gitDir: Path, val pathToFile: Path) {
+    protected var gitDir: Path = gitDir
         private set
 
     companion object {
@@ -17,9 +18,13 @@ abstract class IndexEntry private constructor(gitDir: Path, val pathToFile: Path
         fun load(gitDir: Path, pathToEntryFile: Path): IndexEntry {
             Files.newInputStream(pathToEntryFile).use {
                 ObjectInputStream(it).use {
-                    val res = it.readObject() as IndexEntry
-                    res.gitDir = gitDir
-                    return res
+                    val type = it.readObject()
+                    val pathToFile = Paths.get(it.readObject() as String)
+                    return when (type) {
+                        EditFile::class.java.name -> EditFile(gitDir, pathToFile, it.readObject() as ByteArray)
+                        RemoveFile::class.java.name -> RemoveFile(gitDir, pathToFile)
+                        else -> throw IllegalStateException("Unsupported IndexEntry type: '$type'")
+                    }
                 }
             }
         }
@@ -34,11 +39,22 @@ abstract class IndexEntry private constructor(gitDir: Path, val pathToFile: Path
         val name = indexDir.resolve((last + 1).toString())
         Files.newOutputStream(name).use {
             ObjectOutputStream(it).use {
-                it.writeObject(this)
+                it.writeObject(javaClass.name)
+                writeContentTo(it)
             }
         }
     }
 
-    class IndexEditFile(gitDir: Path, pathToFile: Path, val content: ByteArray): IndexEntry(gitDir, pathToFile)
-    class IndexRemoveFile(gitDir: Path, pathToFile: Path): IndexEntry(gitDir, pathToFile)
+    open fun writeContentTo(out: ObjectOutputStream) {
+        out.writeObject(pathToFile.toString())
+    }
+
+    class EditFile(gitDir: Path, pathToFile: Path, val content: ByteArray): IndexEntry(gitDir, pathToFile) {
+        override fun writeContentTo(out: ObjectOutputStream) {
+            super.writeContentTo(out)
+            out.writeObject(content)
+        }
+    }
+
+    class RemoveFile(gitDir: Path, pathToFile: Path): IndexEntry(gitDir, pathToFile)
 }

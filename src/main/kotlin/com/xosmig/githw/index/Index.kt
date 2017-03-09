@@ -35,8 +35,8 @@ class Index private constructor() {
     fun applyToTree(tree: GitTree) {
         for (entry in entries) {
             when (entry) {
-                is IndexEditFile -> tree.putFile(entry.pathToFile, entry.content)
-                is IndexRemoveFile -> tree.removeFile(entry.pathToFile)
+                is EditFile -> tree.putFile(entry.pathToFile, entry.content)
+                is RemoveFile -> tree.removeFile(entry.pathToFile)
                 else -> throw UnsupportedOperationException("Unknown IndexEntry type: '${entry.javaClass.name}'")
             }
         }
