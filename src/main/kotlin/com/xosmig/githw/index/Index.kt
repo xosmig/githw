@@ -15,7 +15,10 @@ class Index private constructor() {
         @Throws(IOException::class)
         fun load(gitDir: Path): Index {
             val res = Index()
-            for (file in Files.newDirectoryStream(gitDir.resolve(INDEX_PATH)).sortedBy { it.fileName }) {
+            val files = Files.newDirectoryStream(gitDir.resolve(INDEX_PATH)).sortedBy {
+                it.fileName.toString().toInt()
+            }
+            for (file in files) {
                 res.entries.add(IndexEntry.load(gitDir, file))
             }
             return res
@@ -29,17 +32,11 @@ class Index private constructor() {
         }
     }
 
-    @Throws(IOException::class)
-    fun writeToDisk() {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
-    }
-
     fun applyToTree(tree: GitTree) {
         for (entry in entries) {
             when (entry) {
-                is IndexEditFile -> tree.putFile(entry.path, entry.content)
-                is IndexRemoveFile -> tree.removeFile(entry.path)
+                is IndexEditFile -> tree.putFile(entry.pathToFile, entry.content)
+                is IndexRemoveFile -> tree.removeFile(entry.pathToFile)
                 else -> throw UnsupportedOperationException("Unknown IndexEntry type: '${entry.javaClass.name}'")
             }
         }

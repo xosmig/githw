@@ -27,7 +27,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
     fun createPath(path: Path?): GitTree = createPathImpl(path?.normalize())
 
     /**
-     * @param[path] normalized path to resolve
+     * @param[path] normalized pathToFile to resolve
      */
     private fun createPathImpl(path: Path?): GitTree {
         if (path == null ||  path.fileName.toString() == "") {
@@ -38,7 +38,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
         val result = when (next) {
             null -> GitTree(gitDir, HashMap())
             is GitTree -> next
-            else -> throw IllegalArgumentException("Invalid path: '$path'")
+            else -> throw IllegalArgumentException("Invalid pathToFile: '$path'")
         }
         children[nextPath.toString()] = result
         return result.createPathImpl(nextPath.relativize(path))
@@ -57,7 +57,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
         } else {
             val nextPath = path.first()
             val next = children[nextPath.toString()]?.loaded as? GitTree
-                    ?: throw IllegalArgumentException("Invalid path: '$path'")
+                    ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
             next.removeFile(nextPath.relativize(path))
             if (next.children.isEmpty()) {
                 children.remove(nextPath.toString())
