@@ -4,6 +4,7 @@ import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import com.xosmig.githw.GITHW_DIR
 import com.xosmig.githw.init
+import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Files
 
@@ -26,9 +27,9 @@ class GitObjectTest {
 
         val copyTree = GitObjectFromDisk(gitDir, rootTree.getSha256()).loaded as GitTree
         val foo = copyTree.createPath(fs.getPath("foo"))
-//        val baz = foo.createPath(fs.getPath("bar/baz"))
-//
-//        assertArrayEquals((foo.getChild("hiWorld.txt").loaded as GitFile).content, hiWorld)
-//        assertArrayEquals((baz.getChild("helloWorld.txt").loaded as GitFile).content, helloWorld)
+        val baz = foo.createPath(fs.getPath("bar/baz"))
+
+        assertArrayEquals((foo.getChild("hiWorld.txt").loaded as GitFile).content, hiWorld)
+        assertArrayEquals((baz.getChild("helloWorld.txt").loaded as GitFile).content, helloWorld)
     }
 }

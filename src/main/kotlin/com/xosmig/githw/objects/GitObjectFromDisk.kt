@@ -20,7 +20,6 @@ class GitObjectFromDisk(gitDir: Path, private val sha256: Sha256): GitObject(git
         get() = isLoadedField.get()
 
     override val loaded: GitObjectLoaded by lazy {
-        println(getObjectFile())
         val res = Files.newInputStream(getObjectFile()).use {
             ObjectInputStream(it).use {
                 val type = it.readObject() as String

@@ -1,8 +1,12 @@
 package com.xosmig.githw
 
+import com.xosmig.githw.objects.Commit
+import com.xosmig.githw.objects.GitTree
+import com.xosmig.githw.refs.Branch
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 
 /**
  * Create an empty repository in the given directory.
@@ -13,11 +17,13 @@ fun init(root: Path) {
     Files.createDirectories(gitDir)
 
     Files.createDirectories(gitDir.resolve(OBJECTS_PATH))
-    Files.createDirectories(gitDir.resolve(REFS_PATH))
-    Files.createDirectories(gitDir.resolve(COMMITS_PATH))
+    Files.createDirectories(gitDir.resolve(BRANCHES_PATH))
+    Files.createDirectories(gitDir.resolve(TAGS_PATH))
 
     Files.createFile(gitDir.resolve(HEAD_PATH))
     Files.createFile(gitDir.resolve(INDEX_PATH))
 
-    // TODO: create one initial commit and one branch
+    val commit = Commit(gitDir, "Initial commit", null, GitTree(gitDir, emptyMap()), Date(), "")
+    val branch = Branch(gitDir, "master", commit)
+    branch.writeToDisk()
 }

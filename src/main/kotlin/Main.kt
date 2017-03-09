@@ -1,3 +1,6 @@
+import com.xosmig.githw.init
+import java.nio.file.Path
+import java.nio.file.Paths
 
 val APP_NAME = "githw"
 
@@ -27,8 +30,14 @@ private class HelpCommand : Command("Show this message") {
 
 private class InitCommand : Command("Create an empty repository") {
     override fun run(args: List<String>) {
-        // TODO
-        throw UnsupportedOperationException("not implemented")
+        when (args.size) {
+            0 -> init(Paths.get(""))
+            1 -> init(Paths.get(args[0]))
+            else -> {
+                println("TODO: too many arguments for githw init")
+                System.exit(2)
+            }
+        }
     }
 }
 
@@ -49,5 +58,6 @@ fun main(args: Array<String>) {
         command.run(args.asList().subList(1, args.size))
     } else {
         println("$APP_NAME: '$commandName' is not a valid command. See '$APP_NAME help'")
+        System.exit(2)
     }
 }
