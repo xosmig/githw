@@ -1,5 +1,6 @@
-package com.xosmig.githw
+package com.xosmig.githw.commands
 
+import com.xosmig.githw.*
 import com.xosmig.githw.objects.Commit
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Branch
@@ -13,7 +14,7 @@ import java.util.*
  */
 @Throws(IOException::class)
 fun init(root: Path) {
-    val gitDir = root.resolve(GITHW_DIR)
+    val gitDir = root.resolve(GIT_DIR_PATH)
     Files.createDirectories(gitDir)
 
     Files.createDirectories(gitDir.resolve(OBJECTS_PATH))

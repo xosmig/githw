@@ -1,6 +1,6 @@
 package com.xosmig.githw
 
-val GITHW_DIR = ".githw"
+val GIT_DIR_PATH = ".githw"
 val HEAD_PATH = "HEAD"
 val INDEX_PATH = "index"
 val OBJECTS_PATH = "objects"

@@ -1,11 +1,12 @@
-import com.xosmig.githw.init
-import java.nio.file.Path
+import com.xosmig.githw.commands.commit
+import com.xosmig.githw.commands.init
 import java.nio.file.Paths
 
 val APP_NAME = "githw"
+val MAX_COMMAND_LENGTH = 10
 
 /**
- * Represent console sub-command such as "githw help" and "githw init".
+ * Represent console sub-command such as "help" and "init".
  */
 private abstract class Command(val description: String) {
     /**
@@ -21,14 +22,14 @@ private class HelpCommand : Command("Show this message") {
             println()
             println("Commands:")
             for ((key, command) in COMMANDS) {
-                println(" $key \t\t ${command.description}")
+                println(String.format(" %-${MAX_COMMAND_LENGTH}s\t${command.description}", key))
             }
             println()
         }
     }
 }
 
-private class InitCommand : Command("Create an empty repository") {
+private class InitCommand: Command("Create an empty repository") {
     override fun run(args: List<String>) {
         when (args.size) {
             0 -> init(Paths.get(""))
@@ -41,9 +42,26 @@ private class InitCommand : Command("Create an empty repository") {
     }
 }
 
+private class CommitCommand: Command("Record changes to the repository") {
+    override fun run(args: List<String>) {
+        when (args.size) {
+            0 -> {
+                println("TODO: 2")
+                System.exit(2)
+            }
+            1 -> commit(Paths.get(""), args[0])
+            else -> {
+                println("TODO: 3")
+                System.exit(2)
+            }
+        }
+    }
+}
+
 private val COMMANDS = hashMapOf(
         "help" to HelpCommand(),
-        "init" to InitCommand()
+        "init" to InitCommand(),
+        "commit" to CommitCommand()
 )
 
 fun main(args: Array<String>) {

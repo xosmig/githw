@@ -2,8 +2,8 @@ package com.xosmig.githw.objects
 
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
-import com.xosmig.githw.GITHW_DIR
-import com.xosmig.githw.init
+import com.xosmig.githw.GIT_DIR_PATH
+import com.xosmig.githw.commands.init
 import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Files
@@ -15,7 +15,7 @@ class GitObjectTest {
         val fs = Jimfs.newFileSystem(Configuration.unix())!!
         val projectRoot = fs.getPath("/tmp")
         Files.createDirectories(projectRoot)
-        val gitDir = projectRoot.resolve(GITHW_DIR)
+        val gitDir = projectRoot.resolve(GIT_DIR_PATH)
 
         val rootTree = GitTree(gitDir, emptyMap())
         init(projectRoot)
