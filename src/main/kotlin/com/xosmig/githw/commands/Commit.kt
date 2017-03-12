@@ -11,7 +11,7 @@ import java.util.*
  * Record changes to the repository.
  */
 @Throws(IOException::class)
-fun commit(root: Path, message: String, date: Date, author: String) {
+fun commit(root: Path, message: String, date: Date = Date(), author: String = getDefaultAuthor()) {
     val gitDir = root.resolve(GIT_DIR_PATH)
     val index = Index.load(gitDir)
     val previous = Commit.loadFromHead(gitDir)
@@ -21,12 +21,4 @@ fun commit(root: Path, message: String, date: Date, author: String) {
     Index.clear(gitDir)
 }
 
-/**
- * Record changes to the repository with current date and default author.
- */
-@Throws(IOException::class)
-fun commit(root: Path, message: String) {
-    // TODO: Commit with author from git settings
-    commit(root, message, Date(), "todo_author_from_settings")
-}
-
+private fun getDefaultAuthor(): String = System.getProperty("user.name")
