@@ -6,7 +6,7 @@ import java.nio.file.Paths
 internal class InitAction : Action("Create an empty repository", "init", "ini") {
     override fun run(args: List<String>) {
         if (args.isNotEmpty()) {
-            tooManyArguments(expected = 0, actual = args.size)
+            tooManyArguments(atMost = 0, actual = args.size)
         }
         init(Paths.get(""))
     }

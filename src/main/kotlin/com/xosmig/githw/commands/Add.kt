@@ -7,7 +7,18 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @Throws(IOException::class)
-fun add(root: Path, file: Path) {
+fun add(root: Path, path: Path) {
     val gitDir = root.resolve(GIT_DIR_PATH)
-    IndexEntry.EditFile(gitDir, file, Files.readAllBytes(file)).writeToDisk()
+
+    fun impl(path: Path) {
+        if (Files.isDirectory(path)) {
+            for (next in Files.newDirectoryStream(path)) {
+                impl(next)
+            }
+        } else {
+            IndexEntry.EditFile(gitDir, path, Files.readAllBytes(path)).writeToDisk()
+        }
+    }
+
+    impl(path)
 }

@@ -7,7 +7,7 @@ internal class HelpAction : Action("Show this message", "help", "h", "-h", "-hel
             return
         }
         if (args.size > 1) {
-            tooManyArguments(expected = 1, actual = args.size)
+            tooManyArguments(atMost = 1, actual = args.size)
         }
         val actionName = args[0]
         getActionByName(actionName)?.printUsage()
