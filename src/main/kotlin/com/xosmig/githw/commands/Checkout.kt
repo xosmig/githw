@@ -10,7 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * Restore working tree files
+ * Restore working tree files.
  *
  * @param[root] path to the working directory.
  * @param[path] path to a directory or a file to restore.

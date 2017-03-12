@@ -1,50 +1,57 @@
-import com.xosmig.githw.commands.add
-import com.xosmig.githw.commands.commit
-import com.xosmig.githw.commands.init
-import com.xosmig.githw.commands.remove
+
+import com.xosmig.githw.commands.*
 import java.nio.file.Paths
 
-val APP_NAME = "githw"
-val MAX_COMMAND_LENGTH = 10
+private val APP_NAME = "githw"
+private val MAX_COMMAND_LENGTH = 10
+private val DEFAULT_FAIL_EXITCODE = 2
+
 
 /**
  * Represent console sub-command such as "help" and "init".
  */
-private abstract class Command(val description: String) {
+private abstract class Action(val description: String, val primaryName: String, vararg aliases: String) {
+    val aliases: Set<String> = setOf(*aliases)
+
     /**
      * Execute the commands with given arguments.
      */
     abstract fun run(args: List<String>)
+
+    fun tooManyArguments(expected: Int, actual: Int) {
+        fail("""
+            |Too many arguments for command '$APP_NAME $primaryName'.
+            |Expected: $expected, actual: $actual"
+        """)
+    }
+
+    fun hasName(name: String): Boolean = name == primaryName || aliases.contains(name)
 }
 
-private class HelpCommand : Command("Show this message") {
+private class HelpAction : Action("Show this message", "help", "-h", "--help", "-help") {
     override fun run(args: List<String>) {
         if (args.isEmpty()) {
             println("usage: $APP_NAME <command> [<args>]")
             println()
             println("Commands:")
-            for ((key, command) in COMMANDS) {
-                println(String.format(" %-${MAX_COMMAND_LENGTH}s\t${command.description}", key))
+            for (action in ACTIONS) {
+                println(String.format(" %-${MAX_COMMAND_LENGTH}s\t${action.description}", action.primaryName))
             }
             println()
         }
     }
 }
 
-private class InitCommand: Command("Create an empty repository") {
+private class InitAction : Action("Create an empty repository", "init", "ini") {
     override fun run(args: List<String>) {
-        when (args.size) {
-            0 -> init(Paths.get(""))
-            1 -> init(Paths.get(args[0]))
-            else -> {
-                println("TODO: too many arguments for githw init")
-                System.exit(2)
-            }
+        if (args.isNotEmpty()) {
+            tooManyArguments(expected = 0, actual = args.size)
         }
+        init(Paths.get(""))
     }
 }
 
-private class CommitCommand: Command("Record changes to the repository") {
+private class CommitAction : Action("Record changes to the repository", "commit") {
     override fun run(args: List<String>) {
         when (args.size) {
             0 -> {
@@ -60,7 +67,7 @@ private class CommitCommand: Command("Record changes to the repository") {
     }
 }
 
-private class RemoveCommand: Command("Remove files from the working tree") {
+private class RemoveAction : Action("Remove files from the working tree", "remove", "rm") {
     override fun run(args: List<String>) {
         when (args.size) {
             0 -> {
@@ -76,7 +83,7 @@ private class RemoveCommand: Command("Remove files from the working tree") {
     }
 }
 
-private class AddCommand: Command("Add file contents to the index") {
+private class AddAction : Action("Add file contents to the index", "add") {
     override fun run(args: List<String>) {
         when (args.size) {
             0 -> {
@@ -92,26 +99,73 @@ private class AddCommand: Command("Add file contents to the index") {
     }
 }
 
-private val COMMANDS = hashMapOf(
-        "help" to HelpCommand(),
-        "init" to InitCommand(),
-        "commit" to CommitCommand(),
-        "add" to AddCommand(),
-        "remove" to RemoveCommand()
-)
-
-fun main(args: Array<String>) {
-    if (args.isEmpty()) {
-        println("see $APP_NAME help")
-        return
-    }
-
-    val commandName = args[0]
-    val command = COMMANDS[commandName]
-    if (command != null) {
-        command.run(args.asList().subList(1, args.size))
-    } else {
-        println("$APP_NAME: '$commandName' is not a valid command. See '$APP_NAME help'")
-        System.exit(2)
+private class CheckoutAction : Action("Restore working tree files", "checkout", "co") {
+    override fun run(args: List<String>) {
+        if (args.isEmpty()) {
+            println("TODO: 12")
+        }
+        for (arg in args) {
+            checkout(Paths.get(""), Paths.get(arg))
+        }
     }
 }
+
+private class AliasAction : Action("Show aliases for all commands", "alias", "aliases") {
+    override fun run(args: List<String>) {
+        if (args.isNotEmpty()) {
+            tooManyArguments(expected = 0, actual = args.size)
+        }
+        for (action in ACTIONS) {
+            if (action.aliases.isNotEmpty()) {
+                println("${action.primaryName}:")
+                for (alias in action.aliases) {
+                    println("\t$alias")
+                }
+            }
+        }
+    }
+}
+
+private val ACTIONS = listOf(
+        HelpAction(),
+        InitAction(),
+        CommitAction(),
+        RemoveAction(),
+        AddAction(),
+        CheckoutAction(),
+        AliasAction()
+)
+
+fun runApp(args: Array<String>) {
+    if (args.isEmpty()) {
+        fail("See $APP_NAME help")
+    }
+
+    val actionName = args[0]
+    for (action in ACTIONS) {
+        if (action.hasName(actionName)) {
+            action.run(args.asList().subList(1, args.size))
+            return
+        }
+    }
+
+    fail("$'APP_NAME $actionName' is not a valid command. See '$APP_NAME help'")
+}
+
+fun main(args: Array<String>) {
+    try {
+        runApp(args)
+    } catch (e: CLIException) {
+        print(e.message)
+        if (e.message!!.last() != '\n') {
+            println()
+        }
+        System.exit(e.exitCode)
+    }
+}
+
+private fun fail(message: String = "", exitCode: Int = DEFAULT_FAIL_EXITCODE) {
+    throw CLIException(message, exitCode)
+}
+
+private class CLIException(message: String, val exitCode: Int): Exception(message)

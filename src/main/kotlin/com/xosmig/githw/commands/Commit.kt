@@ -21,4 +21,4 @@ fun commit(root: Path, message: String, date: Date = Date(), author: String = ge
     Index.clear(gitDir)
 }
 
-private fun getDefaultAuthor(): String = System.getProperty("user.name")
+private fun getDefaultAuthor(): String = System.getProperty("user.primaryName")
