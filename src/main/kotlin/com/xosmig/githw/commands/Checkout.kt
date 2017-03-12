@@ -1,0 +1,39 @@
+package com.xosmig.githw.commands
+
+import com.xosmig.githw.GIT_DIR_PATH
+import com.xosmig.githw.objects.Commit
+import com.xosmig.githw.objects.GitFile
+import com.xosmig.githw.objects.GitObject
+import com.xosmig.githw.objects.GitTree
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+
+/**
+ * Restore working tree files
+ *
+ * @param[root] path to the working directory.
+ * @param[path] path to a directory or a file to restore.
+ */
+@Throws(IOException::class)
+fun checkout(root: Path, path: Path) {
+    val gitDir = root.resolve(GIT_DIR_PATH)
+    val obj = Commit.loadFromHead(gitDir).rootTree.resolve(path)
+            ?: throw IllegalArgumentException("Path '$path' not found.")
+    checkoutImpl(path, obj)
+}
+
+@Throws(IOException::class)
+private fun checkoutImpl(path: Path, obj: GitObject) {
+    when (obj) {
+        is GitFile -> {
+            Files.newOutputStream(path).use {
+                it.write(obj.content)
+            }
+        }
+        is GitTree -> for ((name, child) in obj.children) {
+            checkoutImpl(path.resolve(name), child)
+        }
+        else -> throw IllegalStateException("Unknown child type in `GitTree`: '${obj.javaClass.name}'")
+    }
+}

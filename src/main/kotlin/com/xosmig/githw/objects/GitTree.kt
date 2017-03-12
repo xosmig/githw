@@ -7,7 +7,7 @@ import com.xosmig.githw.utils.Sha256
 
 class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(gitDir) {
 
-    private val children: MutableMap<String, GitObject> = HashMap(children)
+    val children: MutableMap<String, GitObject> = HashMap(children)
 
     companion object {
         fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
@@ -22,26 +22,46 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
     }
 
     /**
-     * TODO
+     * Resolve the given path to a subdirectory.
+     *
+     * @param[path] path to the subdirectory. Only directories' names are allowed. `null` interpreted as an empty path.
+     * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
-    fun createPath(path: Path?): GitTree = createPathImpl(path?.normalize())
+    fun resolve(path: Path?): GitObject? {
+        if (path == null) {
+            return this
+        }
+        val dir = resolveDirImpl(path.parent?.normalize(), createMissing = false)
+        return dir?.getChild(path.fileName.toString())
+    }
 
     /**
-     * @param[path] normalized pathToFile to resolve
+     * Create subdirectories (if missing) according to the given path.
+     *
+     * @param[path] path to create. Only directories' names are allowed. `null` interpreted as an empty path.
+     * @return `GitTree` object connected with the given path.
      */
-    private fun createPathImpl(path: Path?): GitTree {
+    fun createPath(path: Path?): GitTree = resolveDirImpl(path?.normalize(), createMissing = true)
+        ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
+
+    /**
+     * @param[path] normalized path to a subdirectory to resolve. Only directories' names are allowed.
+     * `null` interpreted as an empty path.
+     * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
+     */
+    private fun resolveDirImpl(path: Path?, createMissing: Boolean): GitTree? {
         if (path == null ||  path.fileName.toString() == "") {
             return this
         }
         val nextPath = path.first()
         val next = children[nextPath.toString()]?.loaded
-        val result = when (next) {
-            null -> GitTree(gitDir, HashMap())
-            is GitTree -> next
-            else -> throw IllegalArgumentException("Invalid pathToFile: '$path'")
+        val result = when {
+            next == null && createMissing -> GitTree(gitDir, HashMap())
+            next is GitTree -> next
+            else -> return null
         }
         children[nextPath.toString()] = result
-        return result.createPathImpl(nextPath.relativize(path))
+        return result.resolveDirImpl(nextPath.relativize(path), createMissing)
     }
 
     fun putFile(path: Path, content: ByteArray) {
