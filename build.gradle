@@ -43,3 +43,20 @@ jar {
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+
+task install(dependsOn: jar) {
+    doLast {
+        if (!System.properties['os.name'].toLowerCase().contains('linux')) {
+            println "This OS is not supported"
+            return
+        }
+        def file = new File(System.getProperty("user.home") + "/.local/bin/githw")
+        file.setExecutable(true)
+        file.write("""
+            |#!/bin/bash
+            |
+            |java -jar ${jar.archivePath} "${'$'}@"
+            |""".stripMargin()
+        )
+    }
+}

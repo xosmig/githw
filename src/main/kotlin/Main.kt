@@ -26,16 +26,20 @@ private abstract class Action(val description: String, val primaryName: String, 
     }
 
     fun hasName(name: String): Boolean = name == primaryName || aliases.contains(name)
+
+    fun formatWithComment(comment: String): String {
+            return String.format(" %-${MAX_COMMAND_LENGTH}s\t%s", primaryName, comment)
+    }
 }
 
-private class HelpAction : Action("Show this message", "help", "-h", "--help", "-help") {
+private class HelpAction : Action("Show this message", "help", "h", "-h", "-help", "--help") {
     override fun run(args: List<String>) {
         if (args.isEmpty()) {
-            println("usage: $APP_NAME <command> [<args>]")
+            println("usage: $APP_NAME <command> <args>")
             println()
             println("Commands:")
             for (action in ACTIONS) {
-                println(String.format(" %-${MAX_COMMAND_LENGTH}s\t${action.description}", action.primaryName))
+                println(action.formatWithComment(action.description))
             }
             println()
         }
@@ -117,10 +121,7 @@ private class AliasAction : Action("Show aliases for all commands", "alias", "al
         }
         for (action in ACTIONS) {
             if (action.aliases.isNotEmpty()) {
-                println("${action.primaryName}:")
-                for (alias in action.aliases) {
-                    println("\t$alias")
-                }
+                println(action.formatWithComment(action.aliases.toString().drop(1).dropLast(1)))
             }
         }
     }
