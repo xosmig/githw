@@ -12,7 +12,7 @@ internal abstract class Action(val description: String, val primaryName: String,
      */
     abstract fun run(args: List<String>)
 
-    private fun formatFail(message: String): String = "$APP_NAME $primaryName: message"
+    private fun formatFail(message: String): String = "$APP_NAME $primaryName: $message"
 
     protected fun fail(message: String): Nothing = cliFail(formatFail(message))
 
@@ -30,4 +30,7 @@ internal abstract class Action(val description: String, val primaryName: String,
     fun formatWithComment(comment: String): String {
         return String.format(" %-${MAX_COMMAND_LENGTH}s\t%s", primaryName, comment)
     }
+
+    // TODO: make abstract
+    open fun printUsage() = println("TODO: help message for '$primaryName'")
 }

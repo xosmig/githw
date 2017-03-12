@@ -19,7 +19,5 @@ internal class CommitAction : Action("Record changes to the repository", "commit
         } catch(e: ParseException) {
             fail("Parsing failed. Reason: ${e.message}")
         }
-
-
     }
 }

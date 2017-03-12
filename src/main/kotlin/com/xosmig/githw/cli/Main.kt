@@ -21,14 +21,14 @@ fun runApp(args: Array<String>) {
     }
 
     val actionName = args[0]
-    for (action in ACTIONS) {
-        if (action.hasName(actionName)) {
-            action.run(args.asList().subList(1, args.size))
-            return
-        }
-    }
+    getActionByName(actionName)?.run(args.asList().subList(1, args.size))
+        ?: cliFail("'$APP_NAME $actionName' is not a valid command. See '$APP_NAME help'")
+}
 
-    cliFail("$'APP_NAME $actionName' is not a valid command. See '$APP_NAME help'")
+internal fun getActionByName(actionName: String): Action? {
+    return ACTIONS
+            .filter { it.hasName(actionName) }
+            .firstOrNull()
 }
 
 internal fun cliFail(message: String, exitCode: Int = DEFAULT_FAIL_EXITCODE): Nothing {
@@ -36,4 +36,3 @@ internal fun cliFail(message: String, exitCode: Int = DEFAULT_FAIL_EXITCODE): No
 }
 
 class CLIException internal constructor(message: String, val exitCode: Int): Exception(message)
-
