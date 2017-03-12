@@ -9,9 +9,14 @@ import java.util.*
 
 /**
  * Record changes to the repository.
+ *
+ * @param[root] path to the project root directory
+ * @param[message] commit message
+ * @param[author] the name of the author of the commit
+ * @param[date] date of the commit
  */
 @Throws(IOException::class)
-fun commit(root: Path, message: String, date: Date = Date(), author: String = getDefaultAuthor()) {
+fun commit(root: Path, message: String, author: String = getDefaultAuthor(), date: Date = Date()) {
     val gitDir = root.resolve(GIT_DIR_PATH)
     val index = Index.load(gitDir)
     val previous = Commit.loadFromHead(gitDir)
