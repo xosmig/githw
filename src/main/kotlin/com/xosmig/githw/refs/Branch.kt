@@ -10,9 +10,7 @@ import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Branch(private val gitDir: Path, val name: String, commit: Commit) {
-    var commit = commit
-        private set
+class Branch(private val gitDir: Path, val name: String, val commit: Commit) {
 
     companion object {
         @Throws(IOException::class)
@@ -24,7 +22,12 @@ class Branch(private val gitDir: Path, val name: String, commit: Commit) {
                 }
             }
         }
+
+        @Throws(IOException::class)
+        fun loadFromHead(gitDir: Path, ins: ObjectInputStream): Branch = load(gitDir, ins.readObject() as String)
     }
+
+    fun copy(name: String = this.name, commit: Commit = this.commit) = Branch(gitDir, name, commit)
 
     @Throws(IOException::class)
     fun writeToDisk() {
@@ -35,4 +38,7 @@ class Branch(private val gitDir: Path, val name: String, commit: Commit) {
             }
         }
     }
+
+    @Throws(IOException::class)
+    fun writeToHead(ins: ObjectOutputStream) = ins.writeObject(name)
 }

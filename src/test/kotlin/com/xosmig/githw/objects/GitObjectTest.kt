@@ -13,12 +13,12 @@ class GitObjectTest {
     @Test
     fun saveAndLoadFilesSimple() {
         val fs = Jimfs.newFileSystem(Configuration.unix())!!
-        val projectRoot = fs.getPath("/tmp")
-        Files.createDirectories(projectRoot)
-        val gitDir = projectRoot.resolve(GIT_DIR_PATH)
+        val root = fs.getPath("/projectRoot")
+        Files.createDirectories(root)
+        val gitDir = root.resolve(GIT_DIR_PATH)
 
         val rootTree = GitTree(gitDir, emptyMap())
-        init(projectRoot)
+        init(root)
         val helloWorld = "Hello, World!".toByteArray()
         rootTree.putFile(fs.getPath("foo/bar/baz/helloWorld.txt"), helloWorld)
         val hiWorld = "Hi, World!".toByteArray()

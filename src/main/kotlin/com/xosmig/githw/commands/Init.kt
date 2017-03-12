@@ -4,6 +4,7 @@ import com.xosmig.githw.*
 import com.xosmig.githw.objects.Commit
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Branch
+import com.xosmig.githw.refs.Head
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,4 +28,5 @@ fun init(root: Path) {
     val commit = Commit(gitDir, "Initial commit", null, GitTree(gitDir, emptyMap()), Date(), "")
     val branch = Branch(gitDir, "master", commit)
     branch.writeToDisk()
+    Head.BranchPointer(gitDir, branch).writeToDisk()
 }

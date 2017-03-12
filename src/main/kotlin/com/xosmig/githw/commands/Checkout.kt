@@ -5,6 +5,7 @@ import com.xosmig.githw.objects.Commit
 import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitObject
 import com.xosmig.githw.objects.GitTree
+import com.xosmig.githw.refs.Head
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +19,7 @@ import java.nio.file.Path
 @Throws(IOException::class)
 fun checkout(root: Path, path: Path) {
     val gitDir = root.resolve(GIT_DIR_PATH)
-    val obj = Commit.loadFromHead(gitDir).rootTree.resolve(path)
+    val obj = Head.load(gitDir).getLastCommit().rootTree.resolve(path)
             ?: throw IllegalArgumentException("Path '$path' not found.")
     checkoutImpl(path, obj)
 }

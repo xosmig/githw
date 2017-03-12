@@ -8,6 +8,10 @@ import java.nio.file.Path
 
 abstract class GitObject(protected val gitDir: Path) {
 
+    companion object {
+        fun load(gitDir: Path, sha256: Sha256): GitObjectLoaded = GitObjectFromDisk(gitDir, sha256).loaded
+    }
+
     protected val objectsDir: Path
             get() = gitDir.resolve(OBJECTS_PATH)
 

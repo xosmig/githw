@@ -31,7 +31,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
         if (path == null) {
             return this
         }
-        val dir = resolveDirImpl(path.parent?.normalize(), createMissing = false)
+        val dir = resolveDir(path.parent?.normalize(), createMissing = false)
         return dir?.getChild(path.fileName.toString())
     }
 
@@ -41,7 +41,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
      * @param[path] path to create. Only directories' names are allowed. `null` interpreted as an empty path.
      * @return `GitTree` object connected with the given path.
      */
-    fun createPath(path: Path?): GitTree = resolveDirImpl(path?.normalize(), createMissing = true)
+    fun createPath(path: Path?): GitTree = resolveDir(path?.normalize(), createMissing = true)
         ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
 
     /**
@@ -49,8 +49,15 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
      * `null` interpreted as an empty path.
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
-    private fun resolveDirImpl(path: Path?, createMissing: Boolean): GitTree? {
-        if (path == null ||  path.fileName.toString() == "") {
+    private fun resolveDir(path: Path?, createMissing: Boolean): GitTree? {
+        if (path == null || path.fileName.toString() == "") {
+            return this
+        }
+        return resolveDirImpl(path.toList(), createMissing)
+    }
+
+    private fun resolveDirImpl(path: List<Path>, createMissing: Boolean): GitTree? {
+        if (path.isEmpty()) {
             return this
         }
         val nextPath = path.first()
@@ -61,7 +68,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
             else -> return null
         }
         children[nextPath.toString()] = result
-        return result.resolveDirImpl(nextPath.relativize(path), createMissing)
+        return result.resolveDirImpl(path.subList(1, path.size), createMissing)
     }
 
     fun putFile(path: Path, content: ByteArray) {

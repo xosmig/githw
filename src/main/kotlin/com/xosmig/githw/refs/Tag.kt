@@ -1,3 +1,4 @@
+/*
 package com.xosmig.githw.refs
 
 import com.xosmig.githw.TAGS_PATH
@@ -19,5 +20,9 @@ class Tag(private val gitDir: Path, val name: String, val commit: GitObject) {
                 }
             }
         }
+
+        @Throws(IOException::class)
+        fun loadFromHead(gitDir: Path, ins: ObjectInputStream): Tag = Tag.load(gitDir, ins.readObject() as String)
     }
 }
+*/
