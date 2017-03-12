@@ -1,4 +1,4 @@
-package com.xosmig.githw.commands
+package com.xosmig.githw.testutils
 
 import java.lang.Math.min
 import java.nio.file.Files
@@ -29,11 +29,15 @@ class RandomObjects(seed: Long): Random(seed) {
                         maxSubdirNumber: Int = nextInt(10) + 1,
                         maxNumOfFilesInOneDir: Int = nextInt(10) + 1,
                         maxFileSize: Int = nextInt(1000) + 1,
-                        emptyFileProbability: Double = 0.05) {
+                        emptyFileProbability: Double = 0.05,
+                        allowEmptyDirectories: Boolean = false) {
 
         fun impl(root: Path, maxDirsNum: Int, maxFilesNum: Int) {
             val dirs = nextIntClosed(min(maxDirsNum, maxSubdirNumber))
-            val files = nextIntClosed(min(maxFilesNum, maxNumOfFilesInOneDir))
+            val files = run {
+                val res = nextIntClosed(min(maxFilesNum, maxNumOfFilesInOneDir))
+                if (dirs == 0 && res == 0 && !allowEmptyDirectories) { 1 } else { res }
+            }
 
             var dirsLeft = maxDirsNum - dirs
             var filesLeft = maxFilesNum - files

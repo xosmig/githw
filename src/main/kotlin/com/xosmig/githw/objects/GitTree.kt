@@ -24,11 +24,12 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
     /**
      * Resolve the given path to a subdirectory.
      *
-     * @param[path] path to the subdirectory. Only directories' names are allowed. `null` interpreted as an empty path.
+     * @param[path] relative path to the subdirectory. Only directories' names are allowed.
+     * `null` interpreted as an empty path.
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
     fun resolve(path: Path?): GitObject? {
-        if (path == null) {
+        if (path == null || path.fileName.toString() == "") {
             return this
         }
         val dir = resolveDir(path.parent?.normalize(), createMissing = false)
@@ -38,7 +39,7 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
     /**
      * Create subdirectories (if missing) according to the given path.
      *
-     * @param[path] path to create. Only directories' names are allowed. `null` interpreted as an empty path.
+     * @param[path] relative path to create. Only directories' names are allowed. `null` interpreted as an empty path.
      * @return `GitTree` object connected with the given path.
      */
     fun createPath(path: Path?): GitTree = resolveDir(path?.normalize(), createMissing = true)

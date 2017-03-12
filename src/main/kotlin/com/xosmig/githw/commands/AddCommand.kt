@@ -11,12 +11,15 @@ fun add(root: Path, path: Path) {
     val gitDir = root.resolve(GIT_DIR_PATH)
 
     fun impl(path: Path) {
+        if (path == gitDir) {
+            return
+        }
         if (Files.isDirectory(path)) {
             for (next in Files.newDirectoryStream(path)) {
                 impl(next)
             }
         } else {
-            IndexEntry.EditFile(gitDir, path, Files.readAllBytes(path)).writeToDisk()
+            IndexEntry.EditFile(gitDir, root.relativize(path), Files.readAllBytes(path)).writeToDisk()
         }
     }
 

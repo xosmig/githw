@@ -13,7 +13,7 @@ class Commit(gitDir: Path,
              val previousCommit: Sha256?,
              val rootTree: GitTree,
              val date: Date,
-             val author: String): GitObjectLoaded(gitDir) {
+             val author: String = defaultAuthor()): GitObjectLoaded(gitDir) {
 
     companion object {
         @Throws(IOException::class)
@@ -31,6 +31,8 @@ class Commit(gitDir: Path,
         fun loadFromHead(gitDir: Path, ins: ObjectInputStream): Commit {
             return GitObject.load(gitDir, ins.readObject() as Sha256) as Commit
         }
+
+        fun defaultAuthor(): String = System.getProperty("user.name")
     }
 
     override fun writeToDisk() {

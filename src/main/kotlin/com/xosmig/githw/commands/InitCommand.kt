@@ -24,8 +24,9 @@ fun init(root: Path) {
     Files.createDirectories(gitDir.resolve(INDEX_PATH))
 
     Files.createFile(gitDir.resolve(HEAD_PATH))
+    Files.createFile(gitDir.resolve(EXCLUDE_PATH))
 
-    val commit = Commit(gitDir, "Initial commit", null, GitTree(gitDir, emptyMap()), Date(), "")
+    val commit = Commit(gitDir, "Initial commit", null, GitTree(gitDir, emptyMap()), Date())
     val branch = Branch(gitDir, "master", commit)
     branch.writeToDisk()
     Head.BranchPointer(gitDir, branch).writeToDisk()

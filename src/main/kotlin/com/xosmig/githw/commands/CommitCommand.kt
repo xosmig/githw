@@ -17,7 +17,7 @@ import java.util.*
  * @param[date] date of the commit
  */
 @Throws(IOException::class)
-fun commit(root: Path, message: String, author: String = getDefaultAuthor(), date: Date = Date()) {
+fun commit(root: Path, message: String, author: String = Commit.defaultAuthor(), date: Date = Date()) {
     val gitDir = root.resolve(GIT_DIR_PATH)
     val index = Index.load(gitDir)
     val head = Head.load(gitDir)
@@ -34,5 +34,3 @@ fun commit(root: Path, message: String, author: String = getDefaultAuthor(), dat
         else -> throw IllegalStateException("Unknown head type: '${head.javaClass.name}'")
     }
 }
-
-private fun getDefaultAuthor(): String = System.getProperty("user.name")

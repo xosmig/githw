@@ -8,6 +8,5 @@ import java.nio.file.Path
 @Throws(IOException::class)
 fun remove(root: Path, file: Path) {
     val gitDir = root.resolve(GIT_DIR_PATH)
-    IndexEntry.RemoveFile(gitDir, file).writeToDisk()
+    IndexEntry.RemoveFile(gitDir, root.relativize(file)).writeToDisk()
 }
-
