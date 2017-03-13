@@ -6,9 +6,15 @@ import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-abstract class GitObjectLoaded internal constructor(gitDir: Path, protected var onDisk: Boolean): GitObject(gitDir) {
+abstract class GitObjectLoaded internal constructor( gitDir: Path,
+                                                     private val knownSha256: Sha256? ): GitObject(gitDir) {
 
-    override val sha256: Sha256 by lazy {
+    private var onDisk = knownSha256 != null
+
+    override final val sha256: Sha256 by lazy {
+        if (knownSha256 != null) {
+            knownSha256
+        }
         ByteArrayOutputStream().use {
             val byteStream = it
             ObjectOutputStream(byteStream).use {
@@ -21,6 +27,7 @@ abstract class GitObjectLoaded internal constructor(gitDir: Path, protected var 
     override final fun writeToDisk() {
         if (!onDisk) {
             writeToDiskImpl()
+            onDisk = true
         }
     }
 

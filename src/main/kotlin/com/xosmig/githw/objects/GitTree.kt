@@ -1,31 +1,43 @@
 package com.xosmig.githw.objects
 
+import com.github.andrewoma.dexx.kollection.ImmutableMap
+import com.github.andrewoma.dexx.kollection.toImmutableMap
 import java.io.*
 import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
 
 class GitTree private constructor( gitDir: Path,
-                                   val children: Map<String, GitObject>,
-                                   onDisk: Boolean ): GitObjectLoaded(gitDir, onDisk) {
+                                   val children: ImmutableMap<String, GitObject>,
+                                   knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256) {
 
     companion object {
-        fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
+        fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): GitTree {
             val count = ins.readInt()
             val children = HashMap<String, GitObjectFromDisk>()
             for (i in 1..count) {
                 val name = ins.readObject() as String
                 children[name] = GitObjectFromDisk.create(gitDir, ins.readObject() as Sha256)
             }
-            return GitTree(gitDir, children, onDisk = true)
+            return GitTree(gitDir, children.toImmutableMap(), sha256)
+        }
+
+        fun create(gitDir: Path, children: ImmutableMap<String, GitObject>): GitTree {
+            return GitTree(gitDir, children, knownSha256 = null)
         }
 
         fun create(gitDir: Path, children: Map<String, GitObject>): GitTree {
-            return GitTree(gitDir, children, onDisk = false)
+            return create(gitDir, children.toImmutableMap())
         }
     }
 
-    /**
+    // unfortunately, there is no visibility modifier to allow to access the constructor only the parent class
+    class Result<out T> internal constructor(val modifiedTree: GitTree, val value: T) {
+        operator fun component1() = modifiedTree
+        operator fun component2() = value
+    }
+
+/*    /**
      * Resolve the given path to a subdirectory.
      *
      * @param[path] relative path to the subdirectory. Only directories' names are allowed.
@@ -33,12 +45,14 @@ class GitTree private constructor( gitDir: Path,
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
     fun resolve(path: Path?): GitObject? {
-        if (path == null || path.fileName.toString() == "") {
+        val normalizedPath = path?.normalize()
+        if (normalizedPath == null || normalizedPath.fileName.toString() == "") {
             return this
         }
-        val dir = resolveDir(path.parent?.normalize(), createMissing = false)
-        return dir?.getChild(path.fileName.toString())
-    }
+        val (newTree, dir)  = resolveDir(normalizedPath.parent, createMissing = false)
+                ?: return null
+        return dir.getChild(normalizedPath.fileName.toString())
+    }*/
 
     /**
      * Create subdirectories (if missing) according to the given path.
@@ -46,70 +60,80 @@ class GitTree private constructor( gitDir: Path,
      * @param[path] relative path to create. Only directories' names are allowed. `null` interpreted as an empty path.
      * @return `GitTree` object connected with the given path.
      */
-    fun createPath(path: Path?): GitTree = resolveDir(path?.normalize(), createMissing = true)
-        ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
+    fun createPath(path: Path?, operation: (GitTree) -> GitTree = {it}): Result<GitTree> {
+        return resolveDir(path, operation, createMissing = true)
+                ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
+    }
 
     /**
-     * @param[path] normalized path to a subdirectory to resolve. Only directories' names are allowed.
+     * @param[path] path to a subdirectory to resolve. Only directories' names are allowed.
      * `null` interpreted as an empty path.
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
-    private fun resolveDir(path: Path?, createMissing: Boolean): GitTree? {
-        if (path == null || path.fileName.toString() == "") {
-            return this
+    private fun resolveDir( path: Path?,
+                            operation: (GitTree) -> GitTree,
+                            createMissing: Boolean ): Result<GitTree>? {
+        val normalizedPath = path?.normalize()
+        val pathList = if (normalizedPath == null || normalizedPath.fileName.toString() == "") {
+            emptyList()
+        } else {
+            normalizedPath.toList()
         }
-        return resolveDirImpl(path.toList(), createMissing)
+        return resolveDirImpl(pathList, createMissing, operation)
     }
 
-    private fun resolveDirImpl(path: List<Path>, createMissing: Boolean): GitTree? {
+    private fun resolveDirImpl( path: List<Path>,
+                                createMissing: Boolean,
+                                operation: (GitTree) -> GitTree ): Result<GitTree>? {
         if (path.isEmpty()) {
-            return this
+            val modified = operation(this)
+            return Result(modifiedTree = modified, value = modified)
         }
-        val nextPath = path.first()
-        val next = children[nextPath.toString()]?.loaded
-        val result = when {
-            next == null && createMissing -> GitTree(gitDir, HashMap())
-            next is GitTree -> next
+        val nextName = path.first().toString()
+        val child = children[nextName]?.loaded
+        val next: GitTree = when {
+            child == null && createMissing -> GitTree.create(gitDir, HashMap())
+            child is GitTree -> child
             else -> return null
         }
-        children[nextPath.toString()] = result
-        return result.resolveDirImpl(path.subList(1, path.size), createMissing)
+        val (newNext, res) =  next.resolveDirImpl(path.subList(1, path.size), createMissing, operation)
+                ?: return null
+        return Result(modifiedTree = putChild(nextName, newNext), value = res)
     }
 
-    fun putFile(path: Path, content: ByteArray) {
-        val dir = createPath(path.parent)
-        dir.children.put(path.fileName.toString(), GitFile(gitDir, content))
+    fun putFile(path: Path, content: ByteArray): GitTree {
+        return createPath(path.parent) {
+            it.putChild(path.fileName.toString(), GitFile.create(gitDir, content))
+        }.modifiedTree
     }
 
-    fun removeFile(path: Path) {
-        if (path.parent == null) {
-            if (children.remove(path.toString()) == null) {
-                throw IllegalArgumentException("No such file: '$path'")
+    private fun removeChild(name: String): GitTree = GitTree.create(gitDir, children.minus(name))
+
+    private fun putChild(name: String, child: GitObject): GitTree = GitTree.create(gitDir, children.put(name, child))
+
+    fun removeFile(path: Path): GitTree {
+        val name = path.fileName.toString()
+        return createPath(path.parent) {
+            if (!it.children.containsKey(name)) {
+                throw IllegalArgumentException("Invalid path to remove: '$path'")
             }
-        } else {
-            val nextPath = path.first()
-            val next = children[nextPath.toString()]?.loaded as? GitTree
-                    ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
-            next.removeFile(nextPath.relativize(path))
-            if (next.children.isEmpty()) {
-                children.remove(nextPath.toString())
-            }
-        }
+            it.removeChild(name)
+        }.modifiedTree
     }
 
-    fun getChild(name: String): GitObject = children[name]
-            ?: throw NoSuchElementException("Child '$name' not found")
+//    fun getChild(name: String): GitObject = children[name]
+//            ?: throw NoSuchElementException("Child '$name' not found")
 
     @Throws(IOException::class)
     override fun writeContentTo(out: ObjectOutputStream) {
         out.writeInt(children.size)
         for ((name, obj) in children) {
             out.writeObject(name)
-            out.writeObject(obj.getSha256())
+            out.writeObject(obj.sha256)
         }
     }
 
-    override fun writeToDisk() {
+    override fun writeToDiskImpl() {
         super.writeToDisk()
         for (child in children.values) {
             child.writeToDisk()

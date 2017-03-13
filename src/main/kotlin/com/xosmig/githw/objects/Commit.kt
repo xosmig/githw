@@ -14,18 +14,18 @@ class Commit private constructor( gitDir: Path,
                                   val rootTree: GitTree,
                                   val date: Date,
                                   val author: String = defaultAuthor(),
-                                  onDisk: Boolean ): GitObjectLoaded(gitDir, onDisk) {
+                                  knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256 ) {
 
     companion object {
         @Throws(IOException::class)
-        fun load(gitDir: Path, ins: ObjectInputStream): Commit {
+        fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): Commit {
             val msg = ins.readObject() as String
             val prevCommit = ins.readObject() as Sha256?
             val rootTree = GitObject.load(gitDir, ins.readObject() as Sha256) as GitTree
             val date = ins.readObject() as Date
             val author = ins.readObject() as String
 
-            return Commit(gitDir, msg, prevCommit, rootTree, date, author, onDisk = true)
+            return Commit(gitDir, msg, prevCommit, rootTree, date, author, sha256)
         }
 
         @Throws(IOException::class)
@@ -35,7 +35,7 @@ class Commit private constructor( gitDir: Path,
 
         fun create(gitDir: Path, message: String, previousCommit: Sha256?, rootTree: GitTree,
                    date: Date = Date(), author: String = defaultAuthor()): Commit {
-            return Commit(gitDir, message, previousCommit, rootTree, date, author, onDisk = false)
+            return Commit(gitDir, message, previousCommit, rootTree, date, author, knownSha256 = null)
         }
 
         fun defaultAuthor(): String = System.getProperty("user.name")

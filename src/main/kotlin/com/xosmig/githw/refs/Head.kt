@@ -30,7 +30,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
 
     abstract fun writeToDisk()
 
-    abstract fun getLastCommit(): Commit
+    abstract val commit: Commit
 
     class BranchPointer(gitDir: Path, val branch: Branch): Head(gitDir) {
         override fun writeToDisk() {
@@ -42,10 +42,10 @@ abstract class Head private constructor(protected val gitDir: Path) {
             }
         }
 
-        override fun getLastCommit(): Commit = branch.commit
+        override val commit: Commit = branch.commit
     }
 
-    class CommitPointer(gitDir: Path, val commit: Commit): Head(gitDir) {
+    class CommitPointer(gitDir: Path, override val commit: Commit): Head(gitDir) {
         override fun writeToDisk() {
             Files.newOutputStream(gitDir.resolve(HEAD_PATH)).use {
                 ObjectOutputStream(it).use {
@@ -56,7 +56,5 @@ abstract class Head private constructor(protected val gitDir: Path) {
         }
 
         fun copy(commit: Commit = this.commit) = CommitPointer(gitDir, commit)
-
-        override fun getLastCommit(): Commit = commit
     }
 }

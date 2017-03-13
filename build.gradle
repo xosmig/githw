@@ -2,7 +2,7 @@ group 'xosmig'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.0.6'
+    ext.kotlin_version = '1.1.0'
 
     repositories {
         mavenCentral()
@@ -23,6 +23,7 @@ dependencies {
     compile 'org.jetbrains:annotations:15.0'
     compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+    compile 'com.github.andrewoma.dexx:kollection:0.7'
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.jimfs:jimfs:1.1'
 }

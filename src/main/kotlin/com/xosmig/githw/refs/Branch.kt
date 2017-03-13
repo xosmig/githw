@@ -2,6 +2,7 @@ package com.xosmig.githw.refs
 
 import com.xosmig.githw.BRANCHES_PATH
 import com.xosmig.githw.objects.Commit
+import com.xosmig.githw.objects.GitObject
 import com.xosmig.githw.objects.GitObjectFromDisk
 import com.xosmig.githw.utils.Sha256
 import java.io.IOException
@@ -17,7 +18,7 @@ class Branch(private val gitDir: Path, val name: String, val commit: Commit) {
         fun load(gitDir: Path, branchName: String): Branch {
             Files.newInputStream(gitDir.resolve(BRANCHES_PATH).resolve(branchName)).use {
                 ObjectInputStream(it).use {
-                    val commit = GitObjectFromDisk(gitDir, it.readObject() as Sha256).loaded as Commit
+                    val commit = GitObject.load(gitDir, it.readObject() as Sha256) as Commit
                     return Branch(gitDir, branchName, commit)
                 }
             }
@@ -34,7 +35,7 @@ class Branch(private val gitDir: Path, val name: String, val commit: Commit) {
         commit.writeToDisk()
         Files.newOutputStream(gitDir.resolve(BRANCHES_PATH).resolve(name)).use {
             ObjectOutputStream(it).use {
-                it.writeObject(commit.getSha256())
+                it.writeObject(commit.sha256)
             }
         }
     }

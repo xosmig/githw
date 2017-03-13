@@ -7,19 +7,16 @@ import java.nio.file.Path
 
 class GitFile private constructor( gitDir: Path,
                                    val content: ByteArray,
-                                   onDisk: Boolean ): GitObjectLoaded(gitDir, onDisk) {
-
-    override val sha256: Sha256
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+                                   knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256) {
 
     companion object {
-        fun load(gitDir: Path, ins: ObjectInputStream): GitFile {
+        fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): GitFile {
             val content = ins.readObject() as ByteArray
-            return GitFile(gitDir, content, onDisk = true)
+            return GitFile(gitDir, content, sha256)
         }
 
         fun create(gitDir: Path, content: ByteArray):  GitFile {
-            return GitFile(gitDir, content, onDisk = false)
+            return GitFile(gitDir, content, knownSha256 = null)
         }
     }
 

@@ -19,9 +19,9 @@ class GitObjectFromDisk private constructor(gitDir: Path, override val sha256: S
             ObjectInputStream(it).use {
                 val type = it.readObject() as String
                 when (type) {
-                    GitFile::class.java.name -> GitFile.load(gitDir, it)
-                    GitTree::class.java.name -> GitTree.load(gitDir, it)
-                    Commit::class.java.name -> Commit.load(gitDir, it)
+                    GitFile::class.java.name -> GitFile.load(gitDir, sha256, it)
+                    GitTree::class.java.name -> GitTree.load(gitDir, sha256, it)
+                    Commit::class.java.name -> Commit.load(gitDir, sha256, it)
                     else -> throw ClassNotFoundException("'$type' is not a valid GitObject class")
                 }
             }
