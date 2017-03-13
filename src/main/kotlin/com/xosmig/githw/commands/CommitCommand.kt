@@ -17,16 +17,15 @@ import java.util.*
  * @param[date] date of the commit
  */
 @Throws(IOException::class)
-fun commit(root: Path, message: String, author: String = Commit.defaultAuthor(), date: Date = Date()) {
+fun commit(root: Path, message: String, date: Date = Date(), author: String = Commit.defaultAuthor()) {
     val gitDir = root.resolve(GIT_DIR_PATH)
     val index = Index.load(gitDir)
     val head = Head.load(gitDir)
     val previous = head.commit
-    val commit = Commit.create(gitDir, message, previous.sha256, previous.rootTree, date, author)
-
-    index.applyToTree(commit.rootTree)
-    commit.writeToDisk()
+    val rootTree = index.applyToTree(previous.rootTree)
     Index.clear(gitDir)
+    val commit = Commit.create(gitDir, message, previous.sha256, rootTree, date, author)
+    commit.writeToDisk()
 
     when (head) {
         is Head.BranchPointer -> head.branch.copy(commit = commit).writeToDisk()

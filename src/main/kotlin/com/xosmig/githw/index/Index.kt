@@ -25,13 +25,15 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
         }
     }
 
-    fun applyToTree(tree: GitTree) {
+    fun applyToTree(tree: GitTree): GitTree {
+        var res = tree
         for (entry in this) {
             when (entry) {
-                is EditFile -> tree.putFile(entry.pathToFile, entry.content)
-                is RemoveFile -> tree.removeFile(entry.pathToFile)
+                is EditFile -> res = res.putFile(entry.pathToFile, entry.content)
+                is RemoveFile -> res = res.removeFile(entry.pathToFile)
                 else -> throw UnsupportedOperationException("Unknown IndexEntry type: '${entry.javaClass.name}'")
             }
         }
+        return res
     }
 }
