@@ -6,18 +6,13 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 
-class GitObjectFromDisk(gitDir: Path, private val sha256: Sha256): GitObject(gitDir) {
-    override fun getSha256(): Sha256 = if (isLoaded) { loaded.getSha256() } else { sha256 }
+class GitObjectFromDisk private constructor(gitDir: Path, override val sha256: Sha256): GitObject(gitDir) {
 
-    override fun writeToDisk() {
-        if (isLoaded) {
-            loaded.writeToDisk()
-        }
+    companion object {
+        fun create(gitDir: Path, sha256: Sha256): GitObjectFromDisk = GitObjectFromDisk(gitDir, sha256)
     }
 
-    private val isLoadedField = AtomicBoolean(false)
-    val isLoaded: Boolean
-        get() = isLoadedField.get()
+    override fun writeToDisk() = Unit
 
     override val loaded: GitObjectLoaded by lazy {
         val res = Files.newInputStream(getObjectFile()).use {
@@ -31,9 +26,6 @@ class GitObjectFromDisk(gitDir: Path, private val sha256: Sha256): GitObject(git
                 }
             }
         }
-        isLoadedField.set(true)
         res
     }
-
-
 }

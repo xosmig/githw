@@ -5,9 +5,9 @@ import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
 
-class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(gitDir) {
-
-    val children: MutableMap<String, GitObject> = HashMap(children)
+class GitTree private constructor( gitDir: Path,
+                                   val children: Map<String, GitObject>,
+                                   onDisk: Boolean ): GitObjectLoaded(gitDir, onDisk) {
 
     companion object {
         fun load(gitDir: Path, ins: ObjectInputStream): GitTree {
@@ -15,9 +15,13 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
             val children = HashMap<String, GitObjectFromDisk>()
             for (i in 1..count) {
                 val name = ins.readObject() as String
-                children[name] = GitObjectFromDisk(gitDir, ins.readObject() as Sha256)
+                children[name] = GitObjectFromDisk.create(gitDir, ins.readObject() as Sha256)
             }
-            return GitTree(gitDir, children)
+            return GitTree(gitDir, children, onDisk = true)
+        }
+
+        fun create(gitDir: Path, children: Map<String, GitObject>): GitTree {
+            return GitTree(gitDir, children, onDisk = false)
         }
     }
 
@@ -111,4 +115,10 @@ class GitTree(gitDir: Path, children: Map<String, GitObject>): GitObjectLoaded(g
             child.writeToDisk()
         }
     }
+
+//    fun switchFrom(dst: Path, previous: GitTree) {
+//        if (getSha256() == previous.getSha256()) {
+//            return
+//        }
+//    }
 }

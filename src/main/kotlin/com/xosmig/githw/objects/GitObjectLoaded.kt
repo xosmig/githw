@@ -6,23 +6,30 @@ import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-abstract class GitObjectLoaded(gitDir: Path): GitObject(gitDir) {
-    override fun writeToDisk() {
+abstract class GitObjectLoaded internal constructor(gitDir: Path, protected var onDisk: Boolean): GitObject(gitDir) {
+
+    override val sha256: Sha256 by lazy {
+        ByteArrayOutputStream().use {
+            val byteStream = it
+            ObjectOutputStream(byteStream).use {
+                writeContentTo(it)
+            }
+            Sha256.get(byteStream.toByteArray())
+        }
+    }
+
+    override final fun writeToDisk() {
+        if (!onDisk) {
+            writeToDiskImpl()
+        }
+    }
+
+    open fun writeToDiskImpl() {
         Files.newOutputStream(getObjectFile()).use {
             ObjectOutputStream(it).use {
                 it.writeObject(javaClass.name)
                 writeContentTo(it)
             }
-        }
-    }
-
-    override final fun getSha256(): Sha256 {
-        ByteArrayOutputStream().use {
-            val baos = it
-            ObjectOutputStream(baos).use {
-                writeContentTo(it)
-            }
-            return Sha256.get(baos.toByteArray())
         }
     }
 
