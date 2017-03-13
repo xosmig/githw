@@ -21,8 +21,8 @@ fun commit(root: Path, message: String, author: String = Commit.defaultAuthor(),
     val gitDir = root.resolve(GIT_DIR_PATH)
     val index = Index.load(gitDir)
     val head = Head.load(gitDir)
-    val previous = head.getLastCommit()
-    val commit = Commit(gitDir, message, previous.getSha256(), previous.rootTree, date, author)
+    val previous = head.commit
+    val commit = Commit.create(gitDir, message, previous.sha256, previous.rootTree, date, author)
 
     index.applyToTree(commit.rootTree)
     commit.writeToDisk()

@@ -21,7 +21,7 @@ fun newBranch(root: Path, branchName: String) {
         throw IllegalArgumentException("A branch named '$branchName' already exists.")
     } else {
         val gitDir = root.resolve(GIT_DIR_PATH)
-        val commit = Head.load(gitDir).getLastCommit()
+        val commit = Head.load(gitDir).commit
         Branch(gitDir, branchName, commit).writeToDisk()
     }
 }

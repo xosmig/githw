@@ -16,20 +16,21 @@ class GitObjectTest {
         val root = fs.getPath("/projectRoot")
         Files.createDirectories(root)
         val gitDir = root.resolve(GIT_DIR_PATH)
-
-        val rootTree = GitTree(gitDir, emptyMap())
         init(root)
+        val rootTree1 = GitTree.create(gitDir, emptyMap())
+
+        val helloWorldPath = fs.getPath("foo/bar/baz/helloWorld.txt")
         val helloWorld = "Hello, World!".toByteArray()
-        rootTree.putFile(fs.getPath("foo/bar/baz/helloWorld.txt"), helloWorld)
+        val rootTree2 = rootTree1.putFile(helloWorldPath, helloWorld)
+
+        val hiWorldPath = fs.getPath("foo/hiWorld.txt")
         val hiWorld = "Hi, World!".toByteArray()
-        rootTree.putFile(fs.getPath("foo/hiWorld.txt"), hiWorld)
-        rootTree.writeToDisk()
+        val rootTree3 = rootTree2.putFile(hiWorldPath, hiWorld)
 
-        val copyTree = GitObjectFromDisk(gitDir, rootTree.getSha256()).loaded as GitTree
-        val foo = copyTree.createPath(fs.getPath("foo"))
-        val baz = foo.createPath(fs.getPath("bar/baz"))
+        rootTree3.writeToDisk()
 
-        assertArrayEquals((foo.getChild("hiWorld.txt").loaded as GitFile).content, hiWorld)
-        assertArrayEquals((baz.getChild("helloWorld.txt").loaded as GitFile).content, helloWorld)
+        val copyTree = GitObject.load(gitDir, rootTree3.sha256) as GitTree
+        assertArrayEquals((copyTree.resolve(helloWorldPath).loaded as GitFile).content, helloWorld)
+        assertArrayEquals((copyTree.resolve(hiWorldPath).loaded as GitFile).content, hiWorld)
     }
 }

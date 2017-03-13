@@ -18,8 +18,7 @@ import java.nio.file.Path
 @Throws(IOException::class)
 fun checkout(root: Path, path: Path) {
     val gitDir = root.resolve(GIT_DIR_PATH)
-    val obj = Head.load(gitDir).getLastCommit().rootTree.resolve(root.relativize(path))?.loaded
-            ?: throw IllegalArgumentException("Path '$path' not found.")
+    val obj = Head.load(gitDir).commit.rootTree.resolve(root.relativize(path)).loaded
     checkoutImpl(path, obj)
 }
 

@@ -37,22 +37,26 @@ class GitTree private constructor( gitDir: Path,
         operator fun component2() = value
     }
 
-/*    /**
+    /**
      * Resolve the given path to a subdirectory.
      *
      * @param[path] relative path to the subdirectory. Only directories' names are allowed.
      * `null` interpreted as an empty path.
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
-    fun resolve(path: Path?): GitObject? {
+    fun resolve(path: Path?): GitObject {
         val normalizedPath = path?.normalize()
         if (normalizedPath == null || normalizedPath.fileName.toString() == "") {
             return this
         }
-        val (newTree, dir)  = resolveDir(normalizedPath.parent, createMissing = false)
-                ?: return null
-        return dir.getChild(normalizedPath.fileName.toString())
-    }*/
+        val name = normalizedPath.fileName.toString()
+        var res: GitObject? = null
+        resolveDir(normalizedPath.parent, false) {
+            res = it.getChild(name)
+            it
+        }
+        return res!!
+    }
 
     /**
      * Create subdirectories (if missing) according to the given path.
@@ -61,7 +65,7 @@ class GitTree private constructor( gitDir: Path,
      * @return `GitTree` object connected with the given path.
      */
     fun createPath(path: Path?, operation: (GitTree) -> GitTree = {it}): Result<GitTree> {
-        return resolveDir(path, operation, createMissing = true)
+        return resolveDir(path, true, operation)
                 ?: throw IllegalArgumentException("Invalid pathToFile: '$path'")
     }
 
@@ -71,8 +75,8 @@ class GitTree private constructor( gitDir: Path,
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
     private fun resolveDir( path: Path?,
-                            operation: (GitTree) -> GitTree,
-                            createMissing: Boolean ): Result<GitTree>? {
+                            createMissing: Boolean,
+                            operation: (GitTree) -> GitTree ): Result<GitTree>? {
         val normalizedPath = path?.normalize()
         val pathList = if (normalizedPath == null || normalizedPath.fileName.toString() == "") {
             emptyList()
@@ -121,8 +125,8 @@ class GitTree private constructor( gitDir: Path,
         }.modifiedTree
     }
 
-//    fun getChild(name: String): GitObject = children[name]
-//            ?: throw NoSuchElementException("Child '$name' not found")
+    fun getChild(name: String): GitObject = children[name]
+            ?: throw NoSuchElementException("Child '$name' not found")
 
     @Throws(IOException::class)
     override fun writeContentTo(out: ObjectOutputStream) {
@@ -134,7 +138,7 @@ class GitTree private constructor( gitDir: Path,
     }
 
     override fun writeToDiskImpl() {
-        super.writeToDisk()
+        super.writeToDiskImpl()
         for (child in children.values) {
             child.writeToDisk()
         }
