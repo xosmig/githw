@@ -12,6 +12,7 @@ internal val ACTIONS = listOf(
         RemoveAction(),
         AddAction(),
         CheckoutAction(),
+        BranchAction(),
         AliasAction()
 )
 

@@ -2,7 +2,6 @@ package com.xosmig.githw.commands
 
 import com.xosmig.githw.GIT_DIR_PATH
 import com.xosmig.githw.objects.GitFile
-import com.xosmig.githw.objects.GitObject
 import com.xosmig.githw.objects.GitObjectLoaded
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Head

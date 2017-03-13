@@ -4,24 +4,17 @@ import com.xosmig.githw.INDEX_PATH
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import com.xosmig.githw.index.IndexEntry.*
 import com.xosmig.githw.objects.GitTree
 
-class Index private constructor() {
-    private val entries = ArrayList<IndexEntry>()
-
+class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by entries {
     companion object {
         @Throws(IOException::class)
         fun load(gitDir: Path): Index {
-            val res = Index()
-            val files = Files.newDirectoryStream(gitDir.resolve(INDEX_PATH)).sortedBy {
-                it.fileName.toString().toInt()
-            }
-            for (file in files) {
-                res.entries.add(IndexEntry.load(gitDir, file))
-            }
-            return res
+            val files = Files.newDirectoryStream(gitDir.resolve(INDEX_PATH))
+                    .sortedBy { it.fileName.toString().toInt() }
+            val entries = files.map { IndexEntry.load(gitDir, it) }
+            return Index(entries)
         }
 
         @Throws(IOException::class)
@@ -33,7 +26,7 @@ class Index private constructor() {
     }
 
     fun applyToTree(tree: GitTree) {
-        for (entry in entries) {
+        for (entry in this) {
             when (entry) {
                 is EditFile -> tree.putFile(entry.pathToFile, entry.content)
                 is RemoveFile -> tree.removeFile(entry.pathToFile)

@@ -9,8 +9,6 @@ import java.nio.file.Files
 import com.xosmig.githw.testutils.RandomObjects
 import com.xosmig.githw.testutils.copy
 import com.xosmig.githw.testutils.getSha256
-import java.nio.file.FileVisitor
-import java.nio.file.Path
 
 class CheckoutCommandTest {
 
