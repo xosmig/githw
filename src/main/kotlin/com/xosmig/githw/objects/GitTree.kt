@@ -115,11 +115,13 @@ class GitTree private constructor( gitDir: Path,
 
     private fun putChild(name: String, child: GitObject): GitTree = GitTree.create(gitDir, children.put(name, child))
 
+    fun containsFile(file: Path): Boolean = resolve(file) != null
+
     fun removeFile(path: Path): GitTree {
         val name = path.fileName.toString()
         return createPath(path.parent) {
             if (!it.children.containsKey(name)) {
-                throw IllegalArgumentException("Invalid path to remove: '$path'")
+                throw IllegalArgumentException("Invalid path to deleteRecursive: '$path'")
             }
             it.removeChild(name)
         }.modifiedTree

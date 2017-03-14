@@ -31,7 +31,11 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
         for (entry in this) {
             when (entry) {
                 is EditFile -> res = res.putFile(entry.pathToFile, entry.content)
-                is RemoveFile -> res = res.removeFile(entry.pathToFile)
+                is RemoveFile -> {
+                    if (res.containsFile(entry.pathToFile)) {
+                        res = res.removeFile(entry.pathToFile)
+                    }
+                }
                 else -> throw UnsupportedOperationException("Unknown IndexEntry type: '${entry.javaClass.name}'")
             }
         }
