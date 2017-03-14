@@ -3,7 +3,7 @@ package com.xosmig.githw.utils
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 
 class GitPath private constructor(private val root: Path, private val path: Path, private val relative: Path) {
@@ -21,19 +21,19 @@ class GitPath private constructor(private val root: Path, private val path: Path
     }
 
     val outputStream
-        get() = Files.newOutputStream(path)
+        get() = newOutputStream(path)
 
     val inputStream
-        get() = Files.newInputStream(path)
+        get() = newInputStream(path)
 
     val parent
         get() = GitPath()
 
     fun createFile() {
-        Files.createDirectories(path.parent)
-        Files.createFile(path)
+        createDirectories(path.parent)
+        createFile(path)
     }
 
-    fun createDir() = Files.createDirectories(path)
+    fun createDir() = createDirectories(path)
 }
 */

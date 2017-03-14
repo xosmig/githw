@@ -6,7 +6,7 @@ import com.xosmig.githw.GIT_DIR_PATH
 import com.xosmig.githw.commands.init
 import org.junit.Assert.*
 import org.junit.Test
-import java.nio.file.Files
+import java.nio.file.Files.*
 
 class GitObjectTest {
 
@@ -14,7 +14,7 @@ class GitObjectTest {
     fun saveAndLoadFilesSimple() {
         val fs = Jimfs.newFileSystem(Configuration.unix())!!
         val root = fs.getPath("/projectRoot")
-        Files.createDirectories(root)
+        createDirectories(root)
         val gitDir = root.resolve(GIT_DIR_PATH)
         init(root)
         val rootTree1 = GitTree.create(gitDir, emptyMap())

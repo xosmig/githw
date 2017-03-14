@@ -3,7 +3,7 @@ package com.xosmig.githw.objects
 import com.xosmig.githw.utils.Sha256
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 
 abstract class GitObjectLoaded internal constructor( gitDir: Path,
@@ -32,7 +32,7 @@ abstract class GitObjectLoaded internal constructor( gitDir: Path,
     }
 
     open fun writeToDiskImpl() {
-        Files.newOutputStream(getObjectFile()).use {
+        newOutputStream(getObjectFile()).use {
             ObjectOutputStream(it).use {
                 it.writeObject(javaClass.name)
                 writeContentTo(it)

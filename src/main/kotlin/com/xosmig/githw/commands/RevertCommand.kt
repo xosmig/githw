@@ -6,7 +6,7 @@ import com.xosmig.githw.objects.GitObjectLoaded
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Head
 import java.io.IOException
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 
 /**
@@ -27,8 +27,8 @@ fun revert(root: Path, path: Path) {
 private fun revertImpl(path: Path, obj: GitObjectLoaded) {
     when (obj) {
         is GitFile -> {
-            Files.createDirectories(path.parent)
-            Files.newOutputStream(path).use {
+            createDirectories(path.parent)
+            newOutputStream(path).use {
                 it.write(obj.content)
             }
         }

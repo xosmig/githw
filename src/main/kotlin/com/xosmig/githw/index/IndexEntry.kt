@@ -4,8 +4,7 @@ import com.xosmig.githw.INDEX_PATH
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import java.io.Serializable
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -14,7 +13,7 @@ abstract class IndexEntry private constructor(protected val gitDir: Path, val pa
     companion object {
         @Throws(IOException::class)
         fun load(gitDir: Path, pathToEntryFile: Path): IndexEntry {
-            Files.newInputStream(pathToEntryFile).use {
+            newInputStream(pathToEntryFile).use {
                 ObjectInputStream(it).use {
                     val type = it.readObject()
                     val pathToFile = Paths.get(it.readObject() as String)
@@ -31,11 +30,11 @@ abstract class IndexEntry private constructor(protected val gitDir: Path, val pa
     @Throws(IOException::class)
     fun writeToDisk() {
         val indexDir = gitDir.resolve(INDEX_PATH)
-        val last: Int = Files.newDirectoryStream(indexDir)
+        val last: Int = newDirectoryStream(indexDir)
                 .map { it.fileName.toString().toInt() }
                 .max() ?: 0
         val name = indexDir.resolve((last + 1).toString())
-        Files.newOutputStream(name).use {
+        newOutputStream(name).use {
             ObjectOutputStream(it).use {
                 it.writeObject(javaClass.name)
                 writeContentTo(it)

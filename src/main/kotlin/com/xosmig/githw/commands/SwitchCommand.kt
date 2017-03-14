@@ -16,5 +16,5 @@ fun switchBranch(root: Path, branchName: String) {
         return
     }
     Branch.load(gitDir, branchName).commit.rootTree
-            .switchFrom(dst = root, previous = head.commit.rootTree)
+            .switchFrom(dir = root, previous = head.commit.rootTree)
 }

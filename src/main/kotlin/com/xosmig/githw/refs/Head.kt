@@ -5,7 +5,7 @@ import com.xosmig.githw.objects.Commit
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 
 /**
@@ -15,7 +15,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
     companion object {
         @Throws(IOException::class)
         fun load(gitDir: Path): Head {
-            Files.newInputStream(gitDir.resolve(HEAD_PATH)).use {
+            newInputStream(gitDir.resolve(HEAD_PATH)).use {
                 ObjectInputStream(it).use {
                     val type = it.readObject() as String
                     return when (type) {
@@ -34,7 +34,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
 
     class BranchPointer(gitDir: Path, val branch: Branch): Head(gitDir) {
         override fun writeToDisk() {
-            Files.newOutputStream(gitDir.resolve(HEAD_PATH)).use {
+            newOutputStream(gitDir.resolve(HEAD_PATH)).use {
                 ObjectOutputStream(it).use {
                     it.writeObject(Branch::class.java.name)
                     branch.writeToHead(it)
@@ -47,7 +47,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
 
     class CommitPointer(gitDir: Path, override val commit: Commit): Head(gitDir) {
         override fun writeToDisk() {
-            Files.newOutputStream(gitDir.resolve(HEAD_PATH)).use {
+            newOutputStream(gitDir.resolve(HEAD_PATH)).use {
                 ObjectOutputStream(it).use {
                     it.writeObject(Branch::class.java.name)
                     commit.writeToHead(it)

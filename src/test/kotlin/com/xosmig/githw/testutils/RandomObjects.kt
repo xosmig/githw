@@ -1,7 +1,7 @@
 package com.xosmig.githw.testutils
 
 import java.lang.Math.min
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
 
@@ -44,7 +44,7 @@ class RandomObjects(seed: Long): Random(seed) {
 
             for (i in 1..dirs) {
                 val nextPath = root.resolve(nextString())
-                Files.createDirectories(nextPath)
+                createDirectories(nextPath)
                 val spendDirs = nextIntClosed(dirsLeft)
                 val spendFiles = nextIntClosed(filesLeft)
                 dirsLeft -= spendDirs
@@ -56,10 +56,10 @@ class RandomObjects(seed: Long): Random(seed) {
                 val nextPath = root.resolve(nextString())
                 if (nextDouble() <= emptyFileProbability) {
                     // empty file
-                    Files.createFile(nextPath)
+                    createFile(nextPath)
                     continue
                 }
-                Files.newOutputStream(nextPath).use {
+                newOutputStream(nextPath).use {
                     val content = ByteArray(nextIntClosed(maxFileSize) + 1)
                     nextBytes(content)
                     it.write(content)

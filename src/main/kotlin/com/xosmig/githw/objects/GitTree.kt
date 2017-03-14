@@ -145,11 +145,13 @@ class GitTree private constructor( gitDir: Path,
         }
     }
 
-    fun switchFrom(dst: Path, previous: GitTree) {
+    fun switchFrom(dir: Path, previous: GitTree) {
         val toCreate = children.minus(previous.children)
-        val toRemove = previous.children.minus(children)
+        val toDelete = previous.children.minus(children)
         val toUpdate = children.minus(toCreate)
-        
-        TODO("not imple")
+
+        for (path in toDelete) {
+
+        }
     }
 }

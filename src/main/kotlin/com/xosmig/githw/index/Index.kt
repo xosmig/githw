@@ -2,7 +2,7 @@ package com.xosmig.githw.index
 
 import com.xosmig.githw.INDEX_PATH
 import java.io.IOException
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 import com.xosmig.githw.index.IndexEntry.*
 import com.xosmig.githw.objects.GitTree
@@ -12,7 +12,7 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
     companion object {
         @Throws(IOException::class)
         fun load(gitDir: Path): Index {
-            val files = Files.newDirectoryStream(gitDir.resolve(INDEX_PATH))
+            val files = newDirectoryStream(gitDir.resolve(INDEX_PATH))
                     .sortedBy { it.fileName.toString().toInt() }
             val entries = files.map { IndexEntry.load(gitDir, it) }
             return Index(entries)
@@ -20,8 +20,8 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
 
         @Throws(IOException::class)
         fun clear(gitDir: Path) {
-            for (file in Files.newDirectoryStream(gitDir.resolve(INDEX_PATH))) {
-                Files.delete(file)
+            for (file in newDirectoryStream(gitDir.resolve(INDEX_PATH))) {
+                delete(file)
             }
         }
     }
@@ -33,8 +33,9 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
                 is EditFile -> res = res.putFile(entry.pathToFile, entry.content)
                 is RemoveFile -> {
                     if (res.containsFile(entry.pathToFile)) {
-                        res = res.removeFile(entry.pathToFile)
+                        
                     }
+                    res = res.removeFile(entry.pathToFile)
                 }
                 else -> throw UnsupportedOperationException("Unknown IndexEntry type: '${entry.javaClass.name}'")
             }

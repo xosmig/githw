@@ -4,7 +4,7 @@ import com.xosmig.githw.GIT_DIR_PATH
 import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.FilesUtils
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
 
 /**
@@ -15,6 +15,6 @@ fun gitClean(root: Path, path: Path) {
     val tree = Head.load(gitDir).commit.rootTree
 
     FilesUtils.walkExclude(root, path, childrenFirst = true, onlyFiles = false)
-            .filter { (Files.isRegularFile(it) && tree.resolve(it) !is GitFile) || FilesUtils.isEmptyDir(it) }
-            .forEach { Files.delete(it) }
+            .filter { (isRegularFile(it) && tree.resolve(it) !is GitFile) || FilesUtils.isEmptyDir(it) }
+            .forEach { delete(it) }
 }

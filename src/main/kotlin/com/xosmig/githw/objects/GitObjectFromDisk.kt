@@ -2,9 +2,8 @@ package com.xosmig.githw.objects
 
 import com.xosmig.githw.utils.Sha256
 import java.io.ObjectInputStream
-import java.nio.file.Files
+import java.nio.file.Files.*
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicBoolean
 
 class GitObjectFromDisk private constructor(gitDir: Path, override val sha256: Sha256): GitObject(gitDir) {
 
@@ -15,7 +14,7 @@ class GitObjectFromDisk private constructor(gitDir: Path, override val sha256: S
     override fun writeToDisk() = Unit
 
     override val loaded: GitObjectLoaded by lazy {
-        val res = Files.newInputStream(getObjectFile()).use {
+        val res = newInputStream(getObjectFile()).use {
             ObjectInputStream(it).use {
                 val type = it.readObject() as String
                 when (type) {
