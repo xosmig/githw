@@ -18,16 +18,6 @@ class FilesUtilsTest {
     val randomUtils = RandomUtils()
 
     @Test
-    fun deleteExcludeTest() {
-        // TODO
-    }
-
-    @Test
-    fun walkExcludeTest() {
-        // TODO
-    }
-
-    @Test
     fun copyRecursiveFileTest() {
         val foo = fs.getPath("/foo")
         randomUtils.randomContent(foo)
