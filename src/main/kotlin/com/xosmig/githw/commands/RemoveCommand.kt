@@ -2,7 +2,8 @@ package com.xosmig.githw.commands
 
 import com.xosmig.githw.GIT_DIR_PATH
 import com.xosmig.githw.index.IndexEntry
-import com.xosmig.githw.utils.FilesUtils
+import com.xosmig.githw.utils.FilesUtils.isEmptyDir
+import com.xosmig.githw.utils.FilesUtils.walkExclude
 import java.io.IOException
 import java.nio.file.Files.*
 import java.nio.file.Path
@@ -14,11 +15,11 @@ fun remove(root: Path, path: Path) {
     }
     val gitDir = root.resolve(GIT_DIR_PATH)
 
-    for (current in FilesUtils.walkExclude(root, path, childrenFirst = true, onlyFiles = false)) {
+    for (current in walkExclude(root, path, childrenFirst = true, onlyFiles = false)) {
         if (isRegularFile(current)) {
             IndexEntry.RemoveFile(gitDir, root.relativize(current)).writeToDisk()
         }
-        if (isRegularFile(current) || FilesUtils.isEmptyDir(current)) {
+        if (isRegularFile(current) || isEmptyDir(current)) {
             delete(current)
         }
     }
