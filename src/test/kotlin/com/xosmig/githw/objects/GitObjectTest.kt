@@ -30,7 +30,7 @@ class GitObjectTest {
         rootTree3.writeToDisk()
 
         val copyTree = GitObject.load(gitDir, rootTree3.sha256) as GitTree
-        assertArrayEquals((copyTree.resolve(helloWorldPath).loaded as GitFile).content, helloWorld)
-        assertArrayEquals((copyTree.resolve(hiWorldPath).loaded as GitFile).content, hiWorld)
+        assertArrayEquals((copyTree.resolve(helloWorldPath)!!.loaded as GitFile).content, helloWorld)
+        assertArrayEquals((copyTree.resolve(hiWorldPath)!!.loaded as GitFile).content, hiWorld)
     }
 }

@@ -10,10 +10,10 @@ import com.xosmig.githw.testutils.RandomObjects
 import com.xosmig.githw.testutils.copy
 import com.xosmig.githw.testutils.getSha256
 
-class CheckoutCommandTest {
+class RevertCommandTest {
 
     @Test
-    fun checkoutSingleRemovedFile() {
+    fun revertSingleRemovedFile() {
         val fs = Jimfs.newFileSystem(Configuration.unix())!!
         val root = fs.getPath("/projectRoot")
         Files.createDirectories(root)
@@ -28,12 +28,12 @@ class CheckoutCommandTest {
         commit(root, "test: file '$filePath' added")
 
         Files.delete(filePath)
-        checkout(root, filePath)
+        revert(root, filePath)
         assertArrayEquals(content, Files.readAllBytes(filePath))
     }
 
     @Test
-    fun checkoutEmptyRootDirectory() {
+    fun revertEmptyRootDirectory() {
         val fs = Jimfs.newFileSystem(Configuration.unix())!!
         val rootDirName = "projectRoot"
 
@@ -49,7 +49,7 @@ class CheckoutCommandTest {
         val newRoot = fs.getPath("/new/$rootDirName")
         Files.createDirectories(newRoot)
         copy(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        checkout(newRoot, newRoot)
+        revert(newRoot, newRoot)
 
         assertEquals(sha256, getSha256(newRoot))
     }

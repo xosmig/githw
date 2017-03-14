@@ -8,6 +8,7 @@ import com.xosmig.githw.index.IndexEntry.*
 import com.xosmig.githw.objects.GitTree
 
 class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by entries {
+
     companion object {
         @Throws(IOException::class)
         fun load(gitDir: Path): Index {

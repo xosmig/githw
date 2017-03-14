@@ -9,9 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-abstract class IndexEntry private constructor(gitDir: Path, val pathToFile: Path) {
-    protected var gitDir: Path = gitDir
-        private set
+abstract class IndexEntry private constructor(protected val gitDir: Path, val pathToFile: Path) {
 
     companion object {
         @Throws(IOException::class)

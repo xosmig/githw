@@ -44,7 +44,7 @@ class GitTree private constructor( gitDir: Path,
      * `null` interpreted as an empty path.
      * @return null if the subdirectory is missing. Corresponding `GitTree` otherwise.
      */
-    fun resolve(path: Path?): GitObject {
+    fun resolve(path: Path?): GitObject? {
         val normalizedPath = path?.normalize()
         if (normalizedPath == null || normalizedPath.fileName.toString() == "") {
             return this
@@ -55,7 +55,7 @@ class GitTree private constructor( gitDir: Path,
             res = it.getChild(name)
             it
         }
-        return res!!
+        return res
     }
 
     /**
@@ -125,8 +125,7 @@ class GitTree private constructor( gitDir: Path,
         }.modifiedTree
     }
 
-    fun getChild(name: String): GitObject = children[name]
-            ?: throw NoSuchElementException("Child '$name' not found")
+    fun getChild(name: String): GitObject? = children[name]
 
     @Throws(IOException::class)
     override fun writeContentTo(out: ObjectOutputStream) {
@@ -144,9 +143,11 @@ class GitTree private constructor( gitDir: Path,
         }
     }
 
-//    fun switchFrom(dst: Path, previous: GitTree) {
-//        if (getSha256() == previous.getSha256()) {
-//            return
-//        }
-//    }
+    fun switchFrom(dst: Path, previous: GitTree) {
+        val toCreate = children.minus(previous.children)
+        val toRemove = previous.children.minus(children)
+        val toUpdate = children.minus(toCreate)
+        
+        TODO("not imple")
+    }
 }

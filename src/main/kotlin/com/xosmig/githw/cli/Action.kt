@@ -1,6 +1,8 @@
 
 package com.xosmig.githw.cli
 
+import com.xosmig.githw.APP_NAME
+
 /**
  * Represent console sub-command such as "help" and "init".
  */

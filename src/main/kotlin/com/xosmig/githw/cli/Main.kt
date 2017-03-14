@@ -1,7 +1,7 @@
 package com.xosmig.githw.cli
 
+import com.xosmig.githw.APP_NAME
 
-internal val APP_NAME = "githw"
 internal val MAX_COMMAND_LENGTH = 10
 internal val DEFAULT_FAIL_EXITCODE = 2
 
@@ -11,7 +11,7 @@ internal val ACTIONS = listOf(
         CommitAction(),
         RemoveAction(),
         AddAction(),
-        CheckoutAction(),
+        RevertAction(),
         BranchAction(),
         AliasAction()
 )
