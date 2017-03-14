@@ -5,13 +5,11 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
 
-class RandomObjects(seed: Long): Random(seed) {
+class RandomUtils(seed: Long = 827): Random(seed) {
 
     companion object {
         val ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_ "
     }
-
-    constructor(): this(827)
 
     fun nextIntClosed(bound: Int) = nextInt(bound + 1)
 
@@ -21,6 +19,14 @@ class RandomObjects(seed: Long): Random(seed) {
             builder.append(ALPHABET[nextInt(ALPHABET.length)])
         }
         return builder.toString()
+    }
+
+    fun randomContent(file: Path, maxSize: Int = 1024) {
+        newOutputStream(file).use {
+            val content = ByteArray(nextInt(maxSize) + 1)
+            nextBytes(content)
+            it.write(content)
+        }
     }
 
     fun randomDirectory(root: Path,
@@ -59,11 +65,7 @@ class RandomObjects(seed: Long): Random(seed) {
                     createFile(nextPath)
                     continue
                 }
-                newOutputStream(nextPath).use {
-                    val content = ByteArray(nextIntClosed(maxFileSize) + 1)
-                    nextBytes(content)
-                    it.write(content)
-                }
+                randomContent(nextPath, maxFileSize)
             }
         }
 

@@ -6,7 +6,7 @@ import java.nio.file.Path
 import java.util.*
 
 object FilesUtils {
-    fun deleteExclude(path: Path, exclude: Exclude) {
+    /*fun deleteExclude(path: Path, exclude: Exclude) {
         if (!exists(path) || exclude.contains(path)) {
             return
         }
@@ -20,7 +20,7 @@ object FilesUtils {
         } else {
             delete(path)
         }
-    }
+    }*/
 
     fun walkExclude( root: Path, path: Path,
                      childrenFirst: Boolean = false,

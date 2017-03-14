@@ -5,7 +5,7 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 
 fun getSha256(path: Path): Sha256 {
-    var result = Sha256.get(path.fileName.toString())
+    var result = Sha256.get("")
     if (isDirectory(path)) {
         for (next in newDirectoryStream(path).sorted()) {
             result = result.add(next.fileName.toString())

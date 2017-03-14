@@ -5,20 +5,27 @@ import com.google.common.jimfs.Jimfs
 import com.xosmig.githw.GIT_DIR_PATH
 import org.junit.Assert.*
 import org.junit.Test
-import com.xosmig.githw.testutils.RandomObjects
+import com.xosmig.githw.testutils.RandomUtils
 import com.xosmig.githw.testutils.getSha256
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
+import org.junit.Before
 import java.nio.file.Files.*
 
 class RevertCommandTest {
 
-    @Test
-    fun revertSingleRemovedFile() {
-        val fs = Jimfs.newFileSystem(Configuration.unix())!!
-        val root = fs.getPath("/projectRoot")
+    val fs = Jimfs.newFileSystem(Configuration.unix())!!
+    val rootDirName = "projectRoot"
+    val root = fs.getPath("/$rootDirName")!!
+    val randomUtils = RandomUtils()
+
+    @Before
+    fun init() {
         createDirectories(root)
         init(root)
+    }
 
+    @Test
+    fun revertSingleRemovedFile() {
         val filePath = root.resolve("file.txt")
         val content = "Hello, World".toByteArray()
         newOutputStream(filePath).use {
@@ -34,14 +41,7 @@ class RevertCommandTest {
 
     @Test
     fun revertEmptyRootDirectory() {
-        val fs = Jimfs.newFileSystem(Configuration.unix())!!
-        val rootDirName = "projectRoot"
-
-        val root = fs.getPath("/$rootDirName")
-        createDirectories(root)
-        init(root)
-        val rnd = RandomObjects()
-        rnd.randomDirectory(root)
+        randomUtils.randomDirectory(root)
         add(root, root)
         commit(root, "test: random directory created.")
         val sha256 = getSha256(root)
