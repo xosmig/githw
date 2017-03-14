@@ -6,10 +6,6 @@ import java.nio.file.Path
 import java.util.*
 
 object FilesUtils {
-    fun deleteExclude(path: Path, root: Path) {
-        deleteExclude(path, Exclude.loadFromRoot(root))
-    }
-
     fun deleteExclude(path: Path, exclude: Exclude) {
         if (!exists(path) || exclude.contains(path)) {
             return
@@ -18,8 +14,12 @@ object FilesUtils {
             for (child in newDirectoryStream(path)) {
                 deleteExclude(child, exclude)
             }
+            if (isEmptyDir(path)) {
+                delete(path)
+            }
+        } else {
+            delete(path)
         }
-        delete(path)
     }
 
     fun walkExclude( root: Path, path: Path,

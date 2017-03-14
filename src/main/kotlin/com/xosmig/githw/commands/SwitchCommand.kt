@@ -11,10 +11,6 @@ fun switchBranch(root: Path, branchName: String) {
     if (Index.load(gitDir).isNotEmpty()) {
         throw IllegalArgumentException("Index is not empty")
     }
-    val head = Head.load(gitDir)
-    if (head is Head.BranchPointer && branchName == head.branch.name) {
-        return
-    }
-    Branch.load(gitDir, branchName).commit.rootTree
-            .switchFrom(dir = root, previous = head.commit.rootTree)
+    Head.BranchPointer(gitDir, Branch.load(gitDir, branchName)).writeToDisk()
+    revert(root, root)
 }

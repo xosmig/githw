@@ -2,6 +2,8 @@ package com.xosmig.githw.objects
 
 import com.github.andrewoma.dexx.kollection.ImmutableMap
 import com.github.andrewoma.dexx.kollection.toImmutableMap
+import com.xosmig.githw.Exclude
+import com.xosmig.githw.utils.FilesUtils.deleteExclude
 import java.io.*
 import java.nio.file.Path
 import java.util.*
@@ -9,7 +11,7 @@ import com.xosmig.githw.utils.Sha256
 
 class GitTree private constructor( gitDir: Path,
                                    val children: ImmutableMap<String, GitObject>,
-                                   knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256) {
+                                   knownSha256: Sha256? ): GitFSObject(gitDir, knownSha256) {
 
     companion object {
         fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): GitTree {
@@ -145,13 +147,13 @@ class GitTree private constructor( gitDir: Path,
         }
     }
 
-    fun switchFrom(dir: Path, previous: GitTree) {
-        val toCreate = children.minus(previous.children)
-        val toDelete = previous.children.minus(children)
-        val toUpdate = children.minus(toCreate)
-
-        for (path in toDelete) {
-
+    override fun revert(path: Path) {
+        for ((name, child) in children) {
+            val loaded = child.loaded
+            if (loaded !is GitFSObject) {
+                throw IllegalStateException("Unknown child type in `GitTree`: '${loaded.javaClass.name}'")
+            }
+            loaded.revert(path.resolve(name))
         }
     }
 }
