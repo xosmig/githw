@@ -11,7 +11,8 @@ internal val ACTION_GROUPS = listOf(
                 HelpAction(),
                 AliasAction(),
                 StatusAction(),
-                VersionAction()
+                VersionAction(),
+                LogAction()
         ),
         ActionGroup (
                 "work on the current change",
@@ -25,7 +26,7 @@ internal val ACTION_GROUPS = listOf(
                 RevertAction()
         ),
         ActionGroup (
-                "grow, mark and tweak your common history",
+                "work on history and branches",
                 BranchAction(),
                 CommitAction(),
                 SwitchAction()

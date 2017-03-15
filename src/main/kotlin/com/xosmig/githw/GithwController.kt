@@ -58,7 +58,7 @@ class GithwController(var root: Path) {
 
         val commit = Commit.create(gitDir,
                 message = "Initial commit",
-                previousCommit = null,
+                parents = emptyList(),
                 rootTree = GitTree.create(gitDir, emptyMap()),
                 date = Date()
         )
@@ -75,7 +75,7 @@ class GithwController(var root: Path) {
      * @param[date] date of the commit
      */
     fun commit(message: String, date: Date = Date(), author: String = Commit.defaultAuthor()) {
-        val newCommit = Commit.create(gitDir, message, commit.sha256, treeWithIndex, date, author)
+        val newCommit = Commit.create(gitDir, message, listOf(commit), treeWithIndex, date, author)
         Index.clear(gitDir)
         newCommit.writeToDisk()
 
@@ -109,7 +109,6 @@ class GithwController(var root: Path) {
     /**
      * Restore working tree files.
      *
-     * @param[root] path to the working directory.
      * @param[path] path to a directory or a file to restore.
      */
     fun revert(path: Path) {

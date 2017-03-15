@@ -28,6 +28,7 @@ dependencies {
     compile 'commons-codec:commons-codec:1.10'
     compile 'com.github.andrewoma.dexx:kollection:0.7'
     compile 'com.fulmicoton:multiregexp:0.3'
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.jimfs:jimfs:1.1'
 }

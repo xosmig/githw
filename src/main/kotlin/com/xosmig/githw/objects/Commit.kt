@@ -7,10 +7,11 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Path
 import java.util.*
+import com.xosmig.githw.utils.checkContent
 
 class Commit private constructor( gitDir: Path,
                                   val message: String,
-                                  val previousCommit: Sha256?,
+                                  val parents: List<GitObject>,
                                   val rootTree: GitTree,
                                   val date: Date,
                                   val author: String = defaultAuthor(),
@@ -20,12 +21,14 @@ class Commit private constructor( gitDir: Path,
         @Throws(IOException::class)
         fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): Commit {
             val msg = ins.readObject() as String
-            val prevCommit = ins.readObject() as Sha256?
+            val parents = (ins.readObject() as List<*>)
+                    .checkContent(Sha256::class)
+                    .map { GitObjectFromDisk.create(gitDir, it) }
             val rootTree = GitObject.load(gitDir, ins.readObject() as Sha256) as GitTree
             val date = ins.readObject() as Date
             val author = ins.readObject() as String
 
-            return Commit(gitDir, msg, prevCommit, rootTree, date, author, sha256)
+            return Commit(gitDir, msg, parents, rootTree, date, author, sha256)
         }
 
         @Throws(IOException::class)
@@ -33,9 +36,9 @@ class Commit private constructor( gitDir: Path,
             return GitObject.load(gitDir, ins.readObject() as Sha256) as Commit
         }
 
-        fun create(gitDir: Path, message: String, previousCommit: Sha256?, rootTree: GitTree,
+        fun create(gitDir: Path, message: String, parents: List<GitObject>, rootTree: GitTree,
                    date: Date = Date(), author: String = defaultAuthor()): Commit {
-            return Commit(gitDir, message, previousCommit, rootTree, date, author, knownSha256 = null)
+            return Commit(gitDir, message, parents, rootTree, date, author, knownSha256 = null)
         }
 
         fun defaultAuthor(): String = System.getProperty("user.name")
@@ -49,7 +52,7 @@ class Commit private constructor( gitDir: Path,
     @Throws(IOException::class)
     override fun writeContentTo(out: ObjectOutputStream) {
         out.writeObject(message)
-        out.writeObject(previousCommit)
+        out.writeObject(parents.map { it.sha256 })
         out.writeObject(rootTree.sha256)
         out.writeObject(date)
         out.writeObject(author)
