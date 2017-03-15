@@ -1,8 +1,8 @@
 package com.xosmig.githw.utils
 
 import com.xosmig.githw.GithwTestClass
-import com.xosmig.githw.testutils.getSha256
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
+import com.xosmig.githw.utils.FilesUtils.countSha256
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
 import org.junit.Test
 
@@ -16,22 +16,22 @@ class FilesUtilsTest: GithwTestClass() {
     fun copyRecursiveFileTest() {
         val foo = fs.getPath("/foo")
         randomUtils.randomContent(foo)
-        val sha256 = getSha256(foo)
+        val sha256 = countSha256(foo)
 
         val bar = fs.getPath("/bar")
         copyRecursive(foo, bar)
-        assertEquals(sha256, getSha256(bar))
+        assertEquals(sha256, countSha256(bar))
     }
 
     @Test
     fun copyRecursiveDirectoryTest() {
         val foo = fs.getPath("/foo")
         randomUtils.randomDirectory(foo, allowEmptyDirectories = true)
-        val sha256 = getSha256(foo)
+        val sha256 = countSha256(foo)
 
         val bar = fs.getPath("/bar")
         copyRecursive(foo, bar)
-        assertEquals(sha256, getSha256(bar))
+        assertEquals(sha256, countSha256(bar))
     }
 
     @Test

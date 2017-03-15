@@ -8,6 +8,7 @@ import java.io.Serializable
  * Type-safe wrapper for getSha256 hash.
  */
 class Sha256 private constructor(val value: String): Serializable {
+
     companion object {
         val HASH_PREF_LENGTH = 2
 

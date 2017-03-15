@@ -67,4 +67,17 @@ object FilesUtils {
     }
 
     fun isEmptyDir(path: Path) = isDirectory(path) && newDirectoryStream(path).isEmpty()
+
+    fun countSha256(path: Path): Sha256 {
+        var result = Sha256.get("")
+        if (isDirectory(path)) {
+            for (next in newDirectoryStream(path).sorted()) {
+                result = result.add(next.fileName.toString())
+                result = result.add(countSha256(next))
+            }
+        } else {
+            result = result.add(readAllBytes(path))
+        }
+        return result
+    }
 }
