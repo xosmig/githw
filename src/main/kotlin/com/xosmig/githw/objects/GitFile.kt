@@ -31,4 +31,6 @@ class GitFile private constructor( gitDir: Path,
             it.write(content)
         }
     }
+
+    override fun toString(): String = "@file"
 }

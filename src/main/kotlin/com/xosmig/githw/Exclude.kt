@@ -1,6 +1,7 @@
 package com.xosmig.githw
 
 import com.fulmicoton.multiregexp.MultiPattern
+import java.io.PrintWriter
 import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.stream.Collectors
@@ -22,6 +23,16 @@ class Exclude private constructor(templates: List<String>) {
             }
             templates.add(GIT_DIR_PATTERN)
             return Exclude(templates)
+        }
+
+        fun addToRoot(root: Path, vararg patterns: String) {
+            newOutputStream(root.resolve(IGNORE_PATH)).use {
+                PrintWriter(it).use {
+                    for (pattern in patterns) {
+                        it.println(pattern)
+                    }
+                }
+            }
         }
     }
 

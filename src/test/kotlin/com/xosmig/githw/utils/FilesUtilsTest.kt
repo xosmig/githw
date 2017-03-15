@@ -1,8 +1,6 @@
 package com.xosmig.githw.utils
 
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
-import com.xosmig.githw.testutils.RandomUtils
+import com.xosmig.githw.GithwTestClass
 import com.xosmig.githw.testutils.getSha256
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
@@ -12,10 +10,7 @@ import org.junit.Assert.*
 import java.nio.file.Files.createDirectories
 import java.nio.file.Files.createFile
 
-class FilesUtilsTest {
-
-    val fs = Jimfs.newFileSystem(Configuration.unix())!!
-    val randomUtils = RandomUtils()
+class FilesUtilsTest: GithwTestClass() {
 
     @Test
     fun copyRecursiveFileTest() {

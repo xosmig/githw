@@ -1,25 +1,10 @@
 package com.xosmig.githw.objects
 
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
-import com.xosmig.githw.GIT_DIR_PATH
-import com.xosmig.githw.commands.init
+import com.xosmig.githw.GithwTestClass
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
-import java.nio.file.Files.*
 
-class GitObjectTest {
-
-    val fs = Jimfs.newFileSystem(Configuration.unix())!!
-    val root = fs.getPath("/projectRoot")!!
-    val gitDir = root.resolve(GIT_DIR_PATH)!!
-
-    @Before
-    fun init() {
-        createDirectories(root)
-        init(root)
-    }
+class GitObjectTest: GithwTestClass() {
 
     @Test
     fun saveAndLoadFilesSimple() {

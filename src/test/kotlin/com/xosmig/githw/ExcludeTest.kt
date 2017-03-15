@@ -6,10 +6,9 @@ import com.xosmig.githw.commands.*
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.PrintWriter
 import java.nio.file.Files.*
 
-class ExcludeTest {
+class ExcludeTest: GithwTestClass() {
 
     @Test
     fun excludeGitDirTest() {
@@ -33,12 +32,7 @@ class ExcludeTest {
         val root = fs.getPath("/$rootDirName")
         createDirectories(root)
         init(root)
-        newOutputStream(root.resolve(IGNORE_PATH)).use {
-            PrintWriter(it).use {
-                it.println("foo")
-                it.println("bar")
-            }
-        }
+        Exclude.addToRoot(root, "foo", "bar")
 
         createFile(root.resolve("bar"))
         createFile(root.resolve("qwe"))

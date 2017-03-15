@@ -154,4 +154,6 @@ class GitTree private constructor( gitDir: Path,
             loaded.revert(path.resolve(name))
         }
     }
+
+    override fun toString(): String = children.mapValues { it.value.loaded.toString() }.toList().toString()
 }

@@ -21,6 +21,8 @@ class RandomUtils(seed: Long = 827): Random(seed) {
         return builder.toString()
     }
 
+    fun nextBoolean(trueProbability: Double = 0.5): Boolean = nextDouble() < trueProbability
+
     fun randomContent(file: Path, maxSize: Int = 1024) {
         newOutputStream(file).use {
             val content = ByteArray(nextInt(maxSize) + 1)
@@ -60,7 +62,7 @@ class RandomUtils(seed: Long = 827): Random(seed) {
 
             for (i in 1..files) {
                 val nextPath = root.resolve(nextString())
-                if (nextDouble() <= emptyFileProbability) {
+                if (nextBoolean(emptyFileProbability)) {
                     // empty file
                     createFile(nextPath)
                     continue

@@ -1,28 +1,14 @@
 package com.xosmig.githw.commands
 
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import com.xosmig.githw.GIT_DIR_PATH
+import com.xosmig.githw.GithwTestClass
 import org.junit.Assert.*
 import org.junit.Test
-import com.xosmig.githw.testutils.RandomUtils
 import com.xosmig.githw.testutils.getSha256
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
-import org.junit.Before
 import java.nio.file.Files.*
 
-class RevertCommandTest {
-
-    val fs = Jimfs.newFileSystem(Configuration.unix())!!
-    val rootDirName = "projectRoot"
-    val root = fs.getPath("/$rootDirName")!!
-    val randomUtils = RandomUtils()
-
-    @Before
-    fun init() {
-        createDirectories(root)
-        init(root)
-    }
+class RevertCommandTest: GithwTestClass() {
 
     @Test
     fun revertSingleRemovedFile() {
