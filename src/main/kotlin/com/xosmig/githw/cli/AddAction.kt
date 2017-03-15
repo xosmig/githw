@@ -7,16 +7,10 @@ import java.nio.file.Paths
  */
 internal class AddAction : Action("Add file's content to the index", "add") {
     override fun run(args: List<String>) {
-        checkInitialized()
-
-        if (args.isEmpty()) {
-            tooFewArguments(atLeast = 1, actual = 0)
-        }
+        checkArgNumber(args.size, atLeast = 1)
 
         if (args[0] == "--all" || args[0] == "-a") {
-            if (args.size > 1) {
-                tooManyArguments(atMost = 1, actual = args.size)
-            }
+            checkArgNumber(args.size, atMost = 1)
             githw.addAll()
         }
 

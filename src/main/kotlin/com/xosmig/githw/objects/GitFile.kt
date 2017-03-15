@@ -33,4 +33,11 @@ class GitFile private constructor( gitDir: Path,
     }
 
     override fun toString(): String = "@file"
+
+    override fun mergeWith(other: GitFSObject, path: Path, newFiles: MutableList<Path>) {
+        if (other.sha256 == sha256) {
+            return
+        }
+        other.revert(resolveConflictPath(path, newFiles))
+    }
 }

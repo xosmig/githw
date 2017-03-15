@@ -7,9 +7,8 @@ import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
 
-class GitTree private constructor( gitDir: Path,
-                                   val children: ImmutableMap<String, GitObject>,
-                                   knownSha256: Sha256? ): GitFSObject(gitDir, knownSha256) {
+class GitTree private constructor(gitDir: Path, val children: ImmutableMap<String, GitObject>, knownSha256: Sha256?):
+        GitFSObject(gitDir, knownSha256) {
 
     companion object {
         fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): GitTree {
@@ -156,4 +155,25 @@ class GitTree private constructor( gitDir: Path,
     }
 
     override fun toString(): String = children.mapValues { it.value.loaded.toString() }.toList().toString()
+
+    override fun mergeWith(other: GitFSObject, path: Path, newFiles: MutableList<Path>) {
+        if (other.sha256 == sha256) {
+            return
+        }
+        if (other is GitTree) {
+            for ((name, otherChildNotLoaded) in other.children) {
+                val otherChild = otherChildNotLoaded.loaded as GitFSObject
+                val child = getChild(name)?.loaded as? GitFSObject
+                if (child != null) {
+                    child.mergeWith(otherChild, path.resolve(name))
+                } else {
+                    otherChild.revert(path.resolve(name))
+                }
+            }
+        } else if (other is GitFile) {
+            other.revert(resolveConflictPath(path, newFiles))
+        } else {
+            throw IllegalStateException("Unknown file system type: '${loaded.javaClass.name}'")
+        }
+    }
 }

@@ -8,9 +8,7 @@ internal class HelpAction : Action("Show this message", "help", "h", "-h", "-hel
             printGeneralHelp()
             return
         }
-        if (args.size > 1) {
-            tooManyArguments(atMost = 1, actual = args.size)
-        }
+        checkArgNumber(args.size, atMost = 1)
         val actionName = args[0]
         getActionByName(actionName)?.printHelp()
             ?: fail("Unknown command: '$APP_NAME $actionName'")

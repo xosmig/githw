@@ -2,10 +2,7 @@ package com.xosmig.githw.cli
 
 internal class StatusAction : Action("Show the working tree status", "status", "stat", "st") {
     override fun run(args: List<String>) {
-        checkInitialized()
-        if (args.isNotEmpty()) {
-            throw tooManyArguments(atMost = 0, actual = args.size)
-        }
+        checkArgNumber(args.size, exact = 0)
 
         println(githw.head)
 

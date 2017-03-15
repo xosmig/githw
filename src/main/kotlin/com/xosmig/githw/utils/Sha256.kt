@@ -30,15 +30,9 @@ class Sha256 private constructor(val value: String): Serializable {
 
     fun add(other: Sha256): Sha256 = add(other.value)
 
-    override fun equals(other: Any?): Boolean {
-        return other is Sha256 && value == other.value
-    }
+    override fun equals(other: Any?): Boolean = other is Sha256 && value == other.value
 
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
+    override fun hashCode(): Int = value.hashCode()
 
-    override fun toString(): String {
-        return value
-    }
+    override fun toString(): String = value
 }

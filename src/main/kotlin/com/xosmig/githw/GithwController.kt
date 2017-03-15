@@ -20,8 +20,9 @@ class GithwController(var root: Path) {
     // independent caches: head, index, ignore
 
     val gitDir = root.resolve(GIT_DIR_PATH)!!
+    val initialized = Cache({ checkInitialized() })
 
-    val headCache = Cache({ Head.load(gitDir) })
+    val headCache = Cache({ Head.load(gitDir) }, initialized)
     val head by headCache
 
     val commitCache = Cache({ head.commit }, headCache)
@@ -30,10 +31,10 @@ class GithwController(var root: Path) {
     val treeCache = Cache({ commit.rootTree }, commitCache)
     val tree get() = commit.rootTree
 
-    val indexCache = Cache({ Index.load(gitDir) })
+    val indexCache = Cache({ Index.load(gitDir) }, initialized)
     val index by indexCache
 
-    val ignoreCache = Cache({ Ignore.loadFromRoot(root) })
+    val ignoreCache = Cache({ Ignore.loadFromRoot(root) }, initialized)
     val ignore by ignoreCache
 
     val treeWithIndexCache = Cache({ index.applyToTree(tree) }, indexCache, treeCache)
@@ -121,6 +122,7 @@ class GithwController(var root: Path) {
     }
 
     fun switchBranch(branchName: String) {
+        checkUpToDate()
         if (Index.load(gitDir).isNotEmpty()) {
             throw IllegalArgumentException("Index is not empty")
         }
@@ -185,6 +187,48 @@ class GithwController(var root: Path) {
     }
 
     fun isInitialized(): Boolean = exists(gitDir)
+
+    /**
+     * Merge current branch with another.
+     *
+     * @param[otherBranchName] Name of a branch to merge with
+     * @return List of new files, which have been created due to conflicts
+     */
+    fun merge(otherBranchName: String): List<Path> {
+        checkUpToDate()
+        val otherCommit = Branch.load(gitDir, otherBranchName).commit
+        val otherTree = otherCommit.rootTree
+        val newFiles = tree.mergeWith(otherTree, root)
+        add(root)
+        val head = head
+        commit(if (head is Head.BranchPointer)
+            { "Merge branches ${head.branch.name} and $otherBranchName" }
+            else { "Merge commit ${commit.sha256} and branch $otherBranchName" })
+        return newFiles
+    }
+
+    fun checkInitialized() {
+        if (!isInitialized()) {
+            throw IllegalArgumentException("Not a $APP_NAME repository")
+        }
+    }
+
+    fun checkEmptyIndex() {
+        if (index.isNotEmpty()) {
+            throw IllegalArgumentException("Index must be empty. Commit or revert changes")
+        }
+    }
+
+    fun checkUntrackedFiles() {
+        if (getUntrackedAndUpdatedFiles(root).isNotEmpty()) {
+            throw IllegalArgumentException("Some changes are untracked. Commit or revert changes.")
+        }
+    }
+
+    fun checkUpToDate() {
+        checkEmptyIndex()
+        checkUntrackedFiles()
+    }
 
     fun walkExclude(path: Path,
                     childrenFirst: Boolean = false,

@@ -35,24 +35,16 @@ internal abstract class Action(val description: String, val primaryName: String,
      */
     protected fun fail(message: String, exitCode: Int): Nothing = cliFail(formatFail(message), exitCode)
 
-    protected fun checkInitialized() {
-        if (!githw.isInitialized()) {
-            throw IllegalArgumentException("Not a $APP_NAME repository")
+    protected fun checkArgNumber(actual: Int, atLeast: Int = 0, atMost: Int = 999, exact: Int? = null) {
+        if (exact != null && exact != actual) {
+            fail("Wrong number of arguments. Expected $exact, actual: $actual")
         }
-    }
-
-    /**
-     * Fail with a message that too many arguments were passed to the action.
-     */
-    protected fun tooManyArguments(atMost: Int, actual: Int): Nothing {
-        fail("Too many arguments. Expected at most $atMost, actual: $actual")
-    }
-
-    /**
-     * Fail with a message that too few arguments were passed to the action.
-     */
-    protected fun tooFewArguments(atLeast: Int, actual: Int): Nothing {
-        fail("Too few arguments. Expected at least $atLeast, actual: $actual")
+        if (actual < atLeast) {
+            fail("Too few arguments. Expected at least $atLeast, actual: $actual")
+        }
+        if (actual > atMost) {
+            fail("Too many arguments. Expected at most $atMost, actual: $actual")
+        }
     }
 
     /**

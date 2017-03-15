@@ -4,12 +4,12 @@ import java.nio.file.Paths
 
 internal class CleanAction : Action("Remove untracked files from the working tree", "clean") {
     override fun run(args: List<String>) {
-        checkInitialized()
+        checkArgNumber(args.size, exact = 1)
 
-        when (args.size) {
-            0 -> githw.clean(githw.root)
-            1 -> githw.clean(Paths.get(args[1]))
-            else -> tooManyArguments(atMost = 1, actual = args.size)
+        if (args[0] == "--all") {
+            githw.clean(githw.root)
+        } else {
+            githw.clean(Paths.get(args[0]))
         }
     }
 }

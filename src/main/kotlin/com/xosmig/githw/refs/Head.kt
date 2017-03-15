@@ -9,7 +9,7 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 
 /**
- * HEAD is either a pointer to a ref or a pointer to a commit (detached HEAD).
+ * HEAD is either a pointer to a branch or a pointer to a commit (detached HEAD).
  */
 abstract class Head private constructor(protected val gitDir: Path) {
     companion object {
