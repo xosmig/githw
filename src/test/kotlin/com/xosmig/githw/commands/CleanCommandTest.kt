@@ -2,7 +2,6 @@ package com.xosmig.githw.commands
 
 import com.xosmig.githw.Exclude
 import com.xosmig.githw.GithwTestClass
-import com.xosmig.githw.index.Index
 import com.xosmig.githw.utils.toList
 import org.junit.Test
 import org.junit.Assert.*
@@ -30,7 +29,7 @@ class CleanCommandTest: GithwTestClass() {
         val filesToStay = HashSet<Path>()
 
         // ignored files shouldn't be removed
-        Exclude.addToRoot(root, ".*[0-9]")  // exclude all files and dirs which end with a digit
+        githw.addExclude(".*[0-9]")  // exclude all files and dirs which end with a digit
         val exclude = Exclude.loadFromRoot(root)
         for (path in walk(dir)) {
             if (exclude.contains(path)) {
@@ -41,16 +40,16 @@ class CleanCommandTest: GithwTestClass() {
         // tracked files shouldn't be removed
         for (path in walk(dir).filter { !it.startsWith(gitDir) }) {
             if (isRegularFile(path) && randomUtils.nextBoolean(commitProbability)) {
-                add(root, path)
+                githw.add(path)
                 filesToStay.add(path)
             }
         }
-        commit(root, "foo")
+        githw.commit("foo")
 
         // files in index shouldn't be removed
         for (path in walk(dir).filter { !it.startsWith(gitDir) }) {
             if (isRegularFile(path) && randomUtils.nextBoolean(indexProbability)) {
-                add(root, path)
+                githw.add(path)
                 filesToStay.add(path)
             }
         }
@@ -58,7 +57,7 @@ class CleanCommandTest: GithwTestClass() {
         // files in `gitDir` folder shouldn't be removed
         filesToStay.addAll(walk(dir).filter { it.startsWith(gitDir) && isRegularFile(it) }.toList())
 
-        gitClean(root, dir)
+        githw.clean(dir)
         val remainingFiles = walk(dir).filter { isRegularFile(it) }.collect(Collectors.toSet())
 
         assertEquals(emptySet<Path>(), filesToStay.minus(remainingFiles))

@@ -1,6 +1,5 @@
 package com.xosmig.githw.cli
 
-import com.xosmig.githw.commands.commit
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
@@ -27,9 +26,9 @@ internal class CommitAction : Action("Record changes to the repository", "commit
         }
 
         if (line.hasOption(authorOpt.opt)) {
-            commit(Paths.get(""), line.getOptionValue(messageOpt.opt), author = line.getOptionValue(authorOpt.opt))
+            githw.commit(line.getOptionValue(messageOpt.opt), author = line.getOptionValue(authorOpt.opt))
         } else {
-            commit(Paths.get(""), line.getOptionValue(messageOpt.opt))
+            githw.commit(line.getOptionValue(messageOpt.opt))
         }
     }
 }

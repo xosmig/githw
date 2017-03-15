@@ -43,6 +43,8 @@ abstract class Head private constructor(protected val gitDir: Path) {
         }
 
         override val commit: Commit = branch.commit
+
+        override fun toString(): String = "On branch $branch"
     }
 
     class CommitPointer(gitDir: Path, override val commit: Commit): Head(gitDir) {
@@ -56,5 +58,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
         }
 
         fun copy(commit: Commit = this.commit) = CommitPointer(gitDir, commit)
+
+        override fun toString(): String = "Detached head: ${commit.sha256}"
     }
 }

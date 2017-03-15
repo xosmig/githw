@@ -2,6 +2,7 @@ package com.xosmig.githw.commands
 
 import com.xosmig.githw.GIT_DIR_PATH
 import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.controller.GithwController
 import org.junit.Assert.*
 import org.junit.Test
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
@@ -17,25 +18,26 @@ class RevertCommandTest: GithwTestClass() {
         newOutputStream(filePath).use {
             it.write(content)
         }
-        add(root, filePath)
-        commit(root, "test: file '$filePath' added")
+        githw.add(filePath)
+        githw.commit("test: file '$filePath' added")
 
         delete(filePath)
-        revert(root, filePath)
+        githw.revert(filePath)
         assertArrayEquals(content, readAllBytes(filePath))
     }
 
     @Test
     fun revertEmptyRootDirectory() {
         randomUtils.randomDirectory(root)
-        add(root, root)
-        commit(root, "test: random directory created.")
+        githw.add(root)
+        githw.commit("test: random directory created.")
         val sha256 = countSha256(root)
 
         val newRoot = fs.getPath("/new/$rootDirName")
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        revert(newRoot, newRoot)
+        val newGithw = GithwController(newRoot)
+        newGithw.revert(newRoot)
 
         assertEquals(sha256, countSha256(newRoot))
     }

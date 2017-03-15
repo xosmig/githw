@@ -2,7 +2,7 @@ package com.xosmig.githw
 
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
-import com.xosmig.githw.commands.*
+import com.xosmig.githw.controller.GithwController
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import org.junit.Assert.*
 import org.junit.Test
@@ -12,13 +12,6 @@ class ExcludeTest: GithwTestClass() {
 
     @Test
     fun excludeGitDirTest() {
-        val fs = Jimfs.newFileSystem(Configuration.unix())!!
-        val rootDirName = "projectRoot"
-
-        val root = fs.getPath("/$rootDirName")
-        createDirectories(root)
-        init(root)
-
         val exclude = Exclude.loadFromRoot(root)
         assertTrue(exclude.contains(root.relativize(root.resolve(GIT_DIR_PATH))))
         assertFalse(exclude.contains(root.relativize(root.resolve("foo").resolve(GIT_DIR_PATH))))
@@ -26,13 +19,7 @@ class ExcludeTest: GithwTestClass() {
 
     @Test
     fun excludeSimpleTest() {
-        val fs = Jimfs.newFileSystem(Configuration.unix())!!
-        val rootDirName = "projectRoot"
-
-        val root = fs.getPath("/$rootDirName")
-        createDirectories(root)
-        init(root)
-        Exclude.addToRoot(root, "foo", "bar")
+        githw.addExclude("foo", "bar")
 
         createFile(root.resolve("bar"))
         createFile(root.resolve("qwe"))
@@ -41,13 +28,14 @@ class ExcludeTest: GithwTestClass() {
         createDirectories(root.resolve("hello"))
         createFile(root.resolve("hello/foo"))
 
-        add(root = root, path = root)
-        commit(root, "init")
+        githw.add(root)
+        githw.commit("init")
 
         val newRoot = fs.getPath("/new/$rootDirName")
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        revert(root = newRoot, path = newRoot)
+        val githwCopy = GithwController(newRoot)
+        githwCopy.revert(newRoot)
 
         assertFalse(exists(newRoot.resolve("bar")))
         assertTrue(exists(newRoot.resolve("qwe")))

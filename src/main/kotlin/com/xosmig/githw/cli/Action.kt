@@ -2,14 +2,17 @@
 package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
+import com.xosmig.githw.controller.GithwController
+import java.nio.file.Paths
 
 /**
  * Represent console sub-command such as "help" and "init".
  */
 internal abstract class Action(val description: String, val primaryName: String, vararg aliases: String) {
-    /**
-     * Aliases can be used instead of [primaryName] to call a sub-command from console.
-     */
+
+    val githw = GithwController(Paths.get(""))
+
+    /** Aliases can be used instead of [primaryName] to call a sub-command from console. */
     val aliases: Set<String> = setOf(*aliases)
 
     /**

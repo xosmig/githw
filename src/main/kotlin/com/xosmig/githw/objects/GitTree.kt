@@ -115,7 +115,7 @@ class GitTree private constructor( gitDir: Path,
 
     private fun putChild(name: String, child: GitObject): GitTree = GitTree.create(gitDir, children.put(name, child))
 
-    fun containsFile(file: Path): Boolean = resolve(file) != null
+    fun containsFile(file: Path): Boolean = resolve(file)?.loaded is GitFile
 
     fun removeFile(path: Path): GitTree {
         val name = path.fileName.toString()
