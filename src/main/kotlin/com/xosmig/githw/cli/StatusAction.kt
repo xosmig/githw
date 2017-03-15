@@ -22,10 +22,6 @@ internal class StatusAction : Action("Show the working tree status", "status", "
             }
         }
 
-
-
-
-
     }
 }
 

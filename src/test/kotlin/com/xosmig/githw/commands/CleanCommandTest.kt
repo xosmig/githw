@@ -1,6 +1,6 @@
 package com.xosmig.githw.commands
 
-import com.xosmig.githw.Exclude
+import com.xosmig.githw.Ignore
 import com.xosmig.githw.GithwTestClass
 import com.xosmig.githw.utils.toList
 import org.junit.Test
@@ -29,8 +29,8 @@ class CleanCommandTest: GithwTestClass() {
         val filesToStay = HashSet<Path>()
 
         // ignored files shouldn't be removed
-        githw.addExclude(".*[0-9]")  // exclude all files and dirs which end with a digit
-        val exclude = Exclude.loadFromRoot(root)
+        githw.addToIgnore(".*[0-9]")  // ignore all files and dirs which end with a digit
+        val exclude = githw.ignore
         for (path in walk(dir)) {
             if (exclude.contains(path)) {
                 filesToStay.addAll(walk(path).filter { isRegularFile(it) }.toList())
@@ -46,7 +46,7 @@ class CleanCommandTest: GithwTestClass() {
         }
         githw.commit("foo")
 
-        // files in index shouldn't be removed
+        // files in d shouldn't be removed
         for (path in walk(dir).filter { !it.startsWith(gitDir) }) {
             if (isRegularFile(path) && randomUtils.nextBoolean(indexProbability)) {
                 githw.add(path)

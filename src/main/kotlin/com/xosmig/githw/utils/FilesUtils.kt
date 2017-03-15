@@ -1,18 +1,18 @@
 package com.xosmig.githw.utils
 
-import com.xosmig.githw.Exclude
+import com.xosmig.githw.Ignore
 import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
 
 object FilesUtils {
-    /*fun deleteExclude(path: Path, exclude: Exclude) {
-        if (!exists(path) || exclude.contains(path)) {
+    /*fun deleteExclude(path: Path, ignore: Ignore) {
+        if (!exists(path) || ignore.contains(path)) {
             return
         }
         if (isDirectory(path)) {
             for (child in newDirectoryStream(path)) {
-                deleteExclude(child, exclude)
+                deleteExclude(child, ignore)
             }
             if (isEmptyDir(path)) {
                 delete(path)

@@ -1,25 +1,22 @@
 package com.xosmig.githw
 
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import com.xosmig.githw.controller.GithwController
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Files.*
 
-class ExcludeTest: GithwTestClass() {
+class IgnoreTest : GithwTestClass() {
 
     @Test
     fun excludeGitDirTest() {
-        val exclude = Exclude.loadFromRoot(root)
-        assertTrue(exclude.contains(root.relativize(root.resolve(GIT_DIR_PATH))))
-        assertFalse(exclude.contains(root.relativize(root.resolve("foo").resolve(GIT_DIR_PATH))))
+        assertTrue(githw.ignore.contains(root.relativize(root.resolve(GIT_DIR_PATH))))
+        assertFalse(githw.ignore.contains(root.relativize(root.resolve("foo").resolve(GIT_DIR_PATH))))
     }
 
     @Test
     fun excludeSimpleTest() {
-        githw.addExclude("foo", "bar")
+        githw.addToIgnore("foo", "bar")
 
         createFile(root.resolve("bar"))
         createFile(root.resolve("qwe"))

@@ -6,7 +6,7 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.stream.Collectors
 
-class Exclude private constructor(templates: List<String>) {
+class Ignore private constructor(templates: List<String>) {
 
     private val matcher = MultiPattern.of(templates).matcher()
 
@@ -16,13 +16,13 @@ class Exclude private constructor(templates: List<String>) {
         private fun loadListFromFile(file: Path) = lines(file)
                 .collect(Collectors.toList())
 
-        fun loadFromRoot(root: Path): Exclude {
+        fun loadFromRoot(root: Path): Ignore {
             val templates = loadListFromFile(root.resolve(GIT_DIR_PATH).resolve(EXCLUDE_PATH))
             if (exists(root.resolve(IGNORE_PATH))) {
                 templates.addAll(loadListFromFile(root.resolve(IGNORE_PATH)))
             }
             templates.add(GIT_DIR_PATTERN)
-            return Exclude(templates)
+            return Ignore(templates)
         }
 
         fun addToRoot(root: Path, vararg patterns: String) {

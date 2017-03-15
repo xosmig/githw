@@ -9,75 +9,100 @@ import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Branch
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.FilesUtils
+import com.xosmig.githw.utils.Cache
 import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
 
 class GithwController(var root: Path) {
 
+    // independent caches: head, index, ignore
+
+    val gitDir = root.resolve(GIT_DIR_PATH)!!
+
+    val headCache = Cache({ Head.load(gitDir) })
+    val head by headCache
+
+    val commitCache = Cache({ head.commit }, headCache)
+    val commit by commitCache
+
+    val treeCache = Cache({ commit.rootTree }, commitCache)
+    val tree get() = commit.rootTree
+
+    val indexCache = Cache({ Index.load(gitDir) })
+    val index by indexCache
+
+    val ignoreCache = Cache({ Ignore.loadFromRoot(root) })
+    val ignore by ignoreCache
+
+    val treeWithIndexCache = Cache({ index.applyToTree(tree) }, indexCache, treeCache)
+    val treeWithIndex by treeWithIndexCache
+
     /**
      * Create an empty repository in the given directory.
      */
     fun init() {
-        val state = GithwState(root)
-        createDirectories(state.gitDir)
+        if (exists(gitDir)) {
+            throw IllegalArgumentException("$gitDir already exists")
+        }
+        createDirectories(gitDir)
 
-        createDirectories(state.gitDir.resolve(OBJECTS_PATH))
-        createDirectories(state.gitDir.resolve(BRANCHES_PATH))
-        createDirectories(state.gitDir.resolve(TAGS_PATH))
-        createDirectories(state.gitDir.resolve(INDEX_PATH))
+        createDirectories(gitDir.resolve(OBJECTS_PATH))
+        createDirectories(gitDir.resolve(BRANCHES_PATH))
+        createDirectories(gitDir.resolve(TAGS_PATH))
+        createDirectories(gitDir.resolve(INDEX_PATH))
 
-        createFile(state.gitDir.resolve(HEAD_PATH))
-        createFile(state.gitDir.resolve(EXCLUDE_PATH))
+        createFile(gitDir.resolve(HEAD_PATH))
+        createFile(gitDir.resolve(EXCLUDE_PATH))
 
-        val commit = Commit.create(state.gitDir,
+        val commit = Commit.create(gitDir,
                 message = "Initial commit",
                 previousCommit = null,
-                rootTree = GitTree.create(state.gitDir, emptyMap()),
+                rootTree = GitTree.create(gitDir, emptyMap()),
                 date = Date()
         )
-        val branch = Branch(state.gitDir, "master", commit)
+        val branch = Branch(gitDir, "master", commit)
         branch.writeToDisk()
-        Head.BranchPointer(state.gitDir, branch).writeToDisk()
+        Head.BranchPointer(gitDir, branch).writeToDisk()
     }
 
     /**
      * Record changes to the repository.
      *
-     * @param[root] path to the project root directory
      * @param[message] commit message
      * @param[author] the name of the author of the commit
      * @param[date] date of the commit
      */
     fun commit(message: String, date: Date = Date(), author: String = Commit.defaultAuthor()) {
-        val state = GithwState(root)
-
-        val newCommit = Commit.create(state.gitDir, message, state.commit.sha256, state.treeWithIndex, date, author)
-        Index.clear(state.gitDir)
+        val newCommit = Commit.create(gitDir, message, commit.sha256, treeWithIndex, date, author)
+        Index.clear(gitDir)
         newCommit.writeToDisk()
 
-        val head = state.head
+        val head = head
         when (head) {
             is Head.BranchPointer -> head.branch.copy(commit = newCommit).writeToDisk()
             is Head.CommitPointer -> head.copy(commit = newCommit).writeToDisk()
             else -> throw IllegalStateException("Unknown head type: '${head.javaClass.name}'")
         }
+
+        headCache.reset()
+        indexCache.reset()
     }
 
     fun remove(path: Path) {
         if (!exists(path)) {
             throw IllegalArgumentException("Invalid path '$path'")
         }
-        val state = GithwState(root)
-
         for (current in walkExclude(path, childrenFirst = true, onlyFiles = false)) {
             if (isRegularFile(current)) {
-                IndexEntry.RemoveFile(state.gitDir, root.relativize(current)).writeToDisk()
+                IndexEntry.RemoveFile(gitDir, root.relativize(current)).writeToDisk()
             }
             if (isRegularFile(current) || FilesUtils.isEmptyDir(current)) {
                 delete(current)
             }
         }
+
+        indexCache.reset()
     }
 
     /**
@@ -87,28 +112,27 @@ class GithwController(var root: Path) {
      * @param[path] path to a directory or a file to restore.
      */
     fun revert(path: Path) {
-        val state = GithwState(root)
-        val obj = state.tree.resolve(root.relativize(path))?.loaded
+        val obj = tree.resolve(root.relativize(path))?.loaded
                 ?: throw IllegalArgumentException("file '$path' is not tracked")
         if (obj !is GitFSObject) {
-            throw IllegalArgumentException("Bad object type to revert: '${obj.javaClass.name}'")
+            throw IllegalArgumentException("Bad object type to refresh: '${obj.javaClass.name}'")
         }
         obj.revert(path)
     }
 
     fun switchBranch(branchName: String) {
-        val state = GithwState(root)
-        if (Index.load(state.gitDir).isNotEmpty()) {
+        if (Index.load(gitDir).isNotEmpty()) {
             throw IllegalArgumentException("Index is not empty")
         }
-        Head.BranchPointer(state.gitDir, Branch.load(state.gitDir, branchName)).writeToDisk()
+        Head.BranchPointer(gitDir, Branch.load(gitDir, branchName)).writeToDisk()
         revert(root)
+
+        headCache.reset()
     }
 
     fun getUntrackedFiles(path: Path): List<Path> {
-        val state = GithwState(root)
         return walkExclude(path, childrenFirst = true, onlyFiles = false)
-                .filter { (isRegularFile(it) && !state.treeWithIndex.containsFile(root.relativize(it)))
+                .filter { (isRegularFile(it) && !treeWithIndex.containsFile(root.relativize(it)))
                         || FilesUtils.isEmptyDir(it) }
     }
 
@@ -120,46 +144,42 @@ class GithwController(var root: Path) {
     }
 
     fun branchExist(branchName: String): Boolean {
-        val state = GithwState(root)
-        return exists(state.gitDir.resolve(BRANCHES_PATH).resolve(branchName))
+        return exists(gitDir.resolve(BRANCHES_PATH).resolve(branchName))
     }
 
     fun newBranch(branchName: String) {
-        val state = GithwState(root)
         if (branchExist(branchName)) {
             throw IllegalArgumentException("A branch named '$branchName' already exists.")
         }
-        Branch(state.gitDir, branchName, state.commit).writeToDisk()
+        Branch(gitDir, branchName, commit).writeToDisk()
     }
 
     fun getBranches(): List<String> {
-        val state = GithwState(root)
-        val branchesDir = state.gitDir.resolve(BRANCHES_PATH)
+        val branchesDir = gitDir.resolve(BRANCHES_PATH)
         return newDirectoryStream(branchesDir).map { it.fileName.toString() }
     }
 
     fun add(path: Path) {
-        val state = GithwState(root)
         for (file in walkExclude(path, onlyFiles = true)) {
-            IndexEntry.EditFile(state.gitDir, root.relativize(file), readAllBytes(file)).writeToDisk()
+            IndexEntry.EditFile(gitDir, root.relativize(file), readAllBytes(file)).writeToDisk()
         }
+        indexCache.reset()
     }
 
-    fun addExclude(vararg patterns: String) {
-        Exclude.addToRoot(root, *patterns)
+    fun addToIgnore(vararg patterns: String) {
+        Ignore.addToRoot(root, *patterns)
+        ignoreCache.reset()
     }
 
-    fun getExclude() = Exclude.loadFromRoot(root)
-
-    fun walkExclude( path: Path,
-                     childrenFirst: Boolean = false,
-                     onlyFiles: Boolean = false,
-                     exclude: Exclude = Exclude.loadFromRoot(root) ): List<Path> {
+    fun walkExclude(path: Path,
+                    childrenFirst: Boolean = false,
+                    onlyFiles: Boolean = false,
+                    ignore: Ignore = Ignore.loadFromRoot(root) ): List<Path> {
 
         val res = ArrayList<Path>()
 
         fun impl(current: Path) {
-            if (exclude.contains(root.relativize(current))) {
+            if (ignore.contains(root.relativize(current))) {
                 return
             }
             if (isDirectory(current)) {
