@@ -2,7 +2,7 @@
 package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
-import com.xosmig.githw.controller.GithwController
+import com.xosmig.githw.GithwController
 import java.nio.file.Paths
 
 /**
@@ -58,7 +58,7 @@ internal abstract class Action(val description: String, val primaryName: String,
      * Format action's [primaryName] and [comment] to print within a list.
      */
     fun formatWithComment(comment: String): String {
-        return String.format(" %-${MAX_COMMAND_LENGTH}s\t%s", primaryName, comment)
+        return String.format("   %-${MAX_COMMAND_LENGTH}s\t%s", primaryName, comment)
     }
 
     /**

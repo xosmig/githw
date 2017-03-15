@@ -18,8 +18,8 @@ internal class AddAction : Action("Add file's content to the index", "add") {
             githw.addAll()
         }
 
-        for (file in args) {
-            githw.add(Paths.get(file))
+        for (path in args) {
+            githw.add(Paths.get(path))
         }
     }
 }

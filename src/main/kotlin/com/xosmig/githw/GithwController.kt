@@ -1,6 +1,5 @@
-package com.xosmig.githw.controller
+package com.xosmig.githw
 
-import com.xosmig.githw.*
 import com.xosmig.githw.index.Index
 import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.objects.Commit
@@ -9,9 +8,8 @@ import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Branch
 import com.xosmig.githw.refs.Head
-import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.Cache
-import com.xosmig.githw.utils.FilesUtils.countSha256
+import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
 import java.nio.file.Files.*
 import java.nio.file.Path
@@ -138,7 +136,7 @@ class GithwController(var root: Path) {
                 .filter { isRegularFile(it) }
                 .filter {
                     val gitObj = treeWithIndex.resolve(root.relativize(it))?.loaded
-                    gitObj !is GitFile || gitObj.sha256 != countSha256(path)
+                    gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(path)
                 }
     }
 

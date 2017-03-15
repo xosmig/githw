@@ -20,9 +20,11 @@ internal class HelpAction : Action("Show this message", "help", "h", "-h", "-hel
         println("Usage: $APP_NAME <command> <args>")
         println()
         println("Commands:")
-        for (action in ACTIONS) {
-            println(action.formatWithComment(action.description))
-        }
         println()
+        for (group in ACTION_GROUPS) {
+            group.print()
+            println()
+        }
+        println("See '$APP_NAME help <command>' to read about a specific sub-command")
     }
 }

@@ -1,6 +1,5 @@
 package com.xosmig.githw
 
-import com.xosmig.githw.controller.GithwController
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import org.junit.Assert.*
 import org.junit.Test

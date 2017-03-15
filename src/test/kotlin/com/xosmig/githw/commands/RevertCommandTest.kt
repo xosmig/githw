@@ -1,8 +1,8 @@
 package com.xosmig.githw.commands
 
 import com.xosmig.githw.GIT_DIR_PATH
+import com.xosmig.githw.GithwController
 import com.xosmig.githw.GithwTestClass
-import com.xosmig.githw.controller.GithwController
 import org.junit.Assert.*
 import org.junit.Test
 import com.xosmig.githw.utils.FilesUtils.copyRecursive

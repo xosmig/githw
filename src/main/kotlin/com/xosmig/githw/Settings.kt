@@ -1,5 +1,6 @@
 package com.xosmig.githw
 
+val VERSION = "0.0"
 val APP_NAME = "githw"
 val GIT_DIR_PATH = ".$APP_NAME"
 val HEAD_PATH = "HEAD"

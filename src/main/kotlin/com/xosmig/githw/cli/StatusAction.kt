@@ -21,7 +21,7 @@ internal class StatusAction : Action("Show the working tree status", "status", "
         if (untracked.isNotEmpty()) {
             println("Untracked and updated files:")
             for (file in untracked) {
-                println("\t$file") // TODO: red color
+                println("\t$file")
             }
         } else {
             println("No untracked or updated files")

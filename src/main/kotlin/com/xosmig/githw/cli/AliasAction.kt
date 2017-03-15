@@ -9,8 +9,8 @@ internal class AliasAction : Action("Show aliases for all commands", "alias", "a
             tooManyArguments(atMost = 0, actual = args.size)
         }
         println("Aliases can be used instead of primary name to call a sub-command from console")
-        ACTIONS
-                .filter { it.aliases.isNotEmpty() }
-                .forEach { println(it.formatWithComment(it.aliases.toString().drop(1).dropLast(1))) }
+        for (action in ACTIONS.filter { it.aliases.isNotEmpty() }) {
+            println(action.formatWithComment(action.aliases.toString().drop(1).dropLast(1)))
+        }
     }
 }
