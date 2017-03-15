@@ -41,4 +41,6 @@ class Branch(private val gitDir: Path, val name: String, val commit: Commit) {
 
     @Throws(IOException::class)
     fun writeToHead(ins: ObjectOutputStream) = ins.writeObject(name)
+
+    override fun toString(): String = name
 }

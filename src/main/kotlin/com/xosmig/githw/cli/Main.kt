@@ -8,8 +8,10 @@ internal val DEFAULT_FAIL_EXITCODE = 2
 internal val ACTIONS = listOf(
         HelpAction(),
         InitAction(),
+        StatusAction(),
         CommitAction(),
         RemoveAction(),
+        CleanAction(),
         AddAction(),
         RevertAction(),
         BranchAction(),

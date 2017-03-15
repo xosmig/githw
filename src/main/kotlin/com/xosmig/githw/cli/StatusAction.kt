@@ -1,8 +1,11 @@
 package com.xosmig.githw.cli
 
 import com.xosmig.githw.GIT_DIR_PATH
+import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.refs.Head
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 internal class StatusAction : Action("Show the working tree status", "status", "stat", "st") {
     override fun run(args: List<String>) {
@@ -20,8 +23,22 @@ internal class StatusAction : Action("Show the working tree status", "status", "
             for (file in untracked) {
                 println("\t$file") // TODO: red color
             }
+        } else {
+            println("No untracked files")
         }
 
+        if (githw.index.isNotEmpty()) {
+            println("Index:")
+            val lastEntries = TreeMap<Path, IndexEntry>()
+            for (entry in githw.index) {
+                lastEntries[entry.pathToFile] = entry
+            }
+            for (entry in lastEntries.values) {
+                println("\t$entry")
+            }
+        } else {
+            println("Index is empty")
+        }
     }
 }
 

@@ -51,7 +51,11 @@ abstract class IndexEntry private constructor(protected val gitDir: Path, val pa
             super.writeContentTo(out)
             out.writeObject(content)
         }
+
+        override fun toString(): String = "$pathToFile    (modified / new)"
     }
 
-    class RemoveFile(gitDir: Path, pathToFile: Path): IndexEntry(gitDir, pathToFile)
+    class RemoveFile(gitDir: Path, pathToFile: Path): IndexEntry(gitDir, pathToFile) {
+        override fun toString(): String = "$pathToFile    (removed)"
+    }
 }

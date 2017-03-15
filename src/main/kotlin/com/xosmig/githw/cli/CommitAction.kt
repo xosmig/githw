@@ -4,9 +4,8 @@ import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.ParseException
-import java.nio.file.Paths
 
-internal class CommitAction : Action("Record changes to the repository", "commit") {
+internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
     override fun run(args: List<String>) {
         val options = Options()
 
