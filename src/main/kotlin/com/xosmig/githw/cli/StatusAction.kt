@@ -17,14 +17,14 @@ internal class StatusAction : Action("Show the working tree status", "status", "
         val head = Head.load(gitDir)
         println(head)
 
-        val untracked = githw.getUntrackedFiles(root)
+        val untracked = githw.getUntrackedAndUpdatedFiles(root)
         if (untracked.isNotEmpty()) {
-            println("Untracked files:")
+            println("Untracked and updated files:")
             for (file in untracked) {
                 println("\t$file") // TODO: red color
             }
         } else {
-            println("No untracked files")
+            println("No untracked or updated files")
         }
 
         if (githw.index.isNotEmpty()) {

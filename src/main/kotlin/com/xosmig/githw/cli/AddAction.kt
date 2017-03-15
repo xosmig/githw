@@ -10,6 +10,14 @@ internal class AddAction : Action("Add file's content to the index", "add") {
         if (args.isEmpty()) {
             tooFewArguments(atLeast = 1, actual = 0)
         }
+
+        if (args[0] == "--all" || args[0] == "-a") {
+            if (args.size > 1) {
+                tooManyArguments(atMost = 1, actual = args.size)
+            }
+            githw.addAll()
+        }
+
         for (file in args) {
             githw.add(Paths.get(file))
         }

@@ -5,11 +5,14 @@ import com.xosmig.githw.index.Index
 import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.objects.Commit
 import com.xosmig.githw.objects.GitFSObject
+import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.refs.Branch
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.Cache
+import com.xosmig.githw.utils.FilesUtils.countSha256
+import com.xosmig.githw.utils.FilesUtils.isEmptyDir
 import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
@@ -130,10 +133,18 @@ class GithwController(var root: Path) {
         headCache.reset()
     }
 
+    fun getUntrackedAndUpdatedFiles(path: Path): List<Path> {
+        return walkExclude(path, onlyFiles = true)
+                .filter { isRegularFile(it) }
+                .filter {
+                    val gitObj = treeWithIndex.resolve(root.relativize(it))?.loaded
+                    gitObj !is GitFile || gitObj.sha256 != countSha256(path)
+                }
+    }
+
     fun getUntrackedFiles(path: Path): List<Path> {
-        return walkExclude(path, childrenFirst = true, onlyFiles = false)
-                .filter { (isRegularFile(it) && !treeWithIndex.containsFile(root.relativize(it)))
-                        || FilesUtils.isEmptyDir(it) }
+        return walkExclude(path, onlyFiles = true)
+                .filter { isRegularFile(it) && !treeWithIndex.containsFile(root.relativize(it)) }
     }
 
     /**
@@ -141,6 +152,9 @@ class GithwController(var root: Path) {
      */
     fun clean(path: Path) {
         getUntrackedFiles(path).forEach(::delete)
+        walkExclude(path, childrenFirst = true, onlyFiles = false)
+                .filter(::isEmptyDir)
+                .forEach(::delete)
     }
 
     fun branchExist(branchName: String): Boolean {
@@ -165,6 +179,8 @@ class GithwController(var root: Path) {
         }
         indexCache.reset()
     }
+
+    fun addAll() = add(root)
 
     fun addToIgnore(vararg patterns: String) {
         Ignore.addToRoot(root, *patterns)
