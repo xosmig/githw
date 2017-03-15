@@ -16,10 +16,10 @@ class Cache<out T>(private val supplier: () -> T, vararg deps: Cache<*>) {
 
     fun evaluate() {
         var upToDate = true
-        for (i in deps.indices) {
-            deps[i].evaluate()
-            if (deps[i].version != depsVersions[i]) {
-                depsVersions[i] = deps[i].version
+        for ((i, dep) in deps.withIndex()) {
+            dep.evaluate()
+            if (dep.version != depsVersions[i]) {
+                depsVersions[i] = dep.version
                 upToDate = false
             }
         }

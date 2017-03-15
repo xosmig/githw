@@ -4,6 +4,8 @@ import java.nio.file.Paths
 
 internal class BranchAction : Action("List, create, or delete branches", "branch", "br") {
     override fun run(args: List<String>) {
+        checkInitialized()
+
         val root = Paths.get("")
         when (args.size) {
             0 -> githw.getBranches().forEach(::println)

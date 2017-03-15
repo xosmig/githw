@@ -7,6 +7,8 @@ import org.apache.commons.cli.ParseException
 
 internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
     override fun run(args: List<String>) {
+        checkInitialized()
+
         val options = Options()
 
         val messageOpt = Option("m", "message", true, "Use the given parameter as the commit message")

@@ -35,17 +35,23 @@ internal abstract class Action(val description: String, val primaryName: String,
      */
     protected fun fail(message: String, exitCode: Int): Nothing = cliFail(formatFail(message), exitCode)
 
+    protected fun checkInitialized() {
+        if (!githw.isInitialized()) {
+            throw IllegalArgumentException("Not a $APP_NAME repository")
+        }
+    }
+
     /**
      * Fail with a message that too many arguments were passed to the action.
      */
-    fun tooManyArguments(atMost: Int, actual: Int): Nothing {
+    protected fun tooManyArguments(atMost: Int, actual: Int): Nothing {
         fail("Too many arguments. Expected at most $atMost, actual: $actual")
     }
 
     /**
      * Fail with a message that too few arguments were passed to the action.
      */
-    fun tooFewArguments(atLeast: Int, actual: Int): Nothing {
+    protected fun tooFewArguments(atLeast: Int, actual: Int): Nothing {
         fail("Too few arguments. Expected at least $atLeast, actual: $actual")
     }
 
@@ -64,5 +70,5 @@ internal abstract class Action(val description: String, val primaryName: String,
     /**
      * Print help message for the action.
      */
-    open fun printUsage() = println("TODO: help message for '$primaryName'")
+    open fun printHelp() = println("TODO: help message for '$primaryName'")
 }

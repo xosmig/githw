@@ -185,6 +185,8 @@ class GithwController(var root: Path) {
         ignoreCache.reset()
     }
 
+    fun isInitialized(): Boolean = exists(gitDir)
+
     fun walkExclude(path: Path,
                     childrenFirst: Boolean = false,
                     onlyFiles: Boolean = false,

@@ -1,26 +1,18 @@
 package com.xosmig.githw.cli
 
-import com.xosmig.githw.GIT_DIR_PATH
-import com.xosmig.githw.index.IndexEntry
-import com.xosmig.githw.refs.Head
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.*
-
 internal class StatusAction : Action("Show the working tree status", "status", "stat", "st") {
     override fun run(args: List<String>) {
+        checkInitialized()
         if (args.isNotEmpty()) {
             throw tooManyArguments(atMost = 0, actual = args.size)
         }
-        val root = Paths.get("")
-        val gitDir = root.resolve(GIT_DIR_PATH)
-        val head = Head.load(gitDir)
-        println(head)
 
-        val untracked = githw.getUntrackedAndUpdatedFiles(root)
+        println(githw.head)
+
+        val untracked = githw.getUntrackedAndUpdatedFiles(githw.root)
         if (untracked.isNotEmpty()) {
             println("Untracked and updated files:")
-            for (file in untracked) {
+            for (file in untracked.sorted()) {
                 println("\t$file")
             }
         } else {
@@ -29,11 +21,7 @@ internal class StatusAction : Action("Show the working tree status", "status", "
 
         if (githw.index.isNotEmpty()) {
             println("Index:")
-            val lastEntries = TreeMap<Path, IndexEntry>()
-            for (entry in githw.index) {
-                lastEntries[entry.pathToFile] = entry
-            }
-            for (entry in lastEntries.values) {
+            for (entry in githw.index.sortedBy { it.pathToFile }) {
                 println("\t$entry")
             }
         } else {

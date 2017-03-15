@@ -7,6 +7,8 @@ import java.nio.file.Paths
  */
 internal class AddAction : Action("Add file's content to the index", "add") {
     override fun run(args: List<String>) {
+        checkInitialized()
+
         if (args.isEmpty()) {
             tooFewArguments(atLeast = 1, actual = 0)
         }
