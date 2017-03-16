@@ -1,8 +1,10 @@
 package com.xosmig.githw
 
+import com.github.andrewoma.dexx.kollection.immutableListOf
 import com.xosmig.githw.index.Index
 import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.objects.Commit
+import com.xosmig.githw.objects.Commit.Companion.defaultAuthor
 import com.xosmig.githw.objects.GitFSObject
 import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitTree
@@ -68,16 +70,9 @@ class GithwController(var root: Path) {
         Head.BranchPointer(gitDir, branch).writeToDisk()
     }
 
-    /**
-     * Record changes to the repository.
-     *
-     * @param[message] commit message
-     * @param[author] the name of the author of the commit
-     * @param[date] date of the commit
-     */
-    fun commit(message: String, date: Date = Date(), author: String = Commit.defaultAuthor()) {
-        val newCommit = Commit.create(gitDir, message, listOf(commit), treeWithIndex, date, author)
+    private fun commit(newCommit: Commit) {
         Index.clear(gitDir)
+        indexCache.reset()
         newCommit.writeToDisk()
 
         val head = head
@@ -88,7 +83,17 @@ class GithwController(var root: Path) {
         }
 
         headCache.reset()
-        indexCache.reset()
+    }
+
+    /**
+     * Record changes to the repository.
+     *
+     * @param[message] commit message
+     * @param[author] the name of the author of the commit
+     * @param[date] date of the commit
+     */
+    fun commit(message: String, date: Date = Date(), author: String = defaultAuthor()) {
+        commit(Commit.create(gitDir, message, listOf(commit), treeWithIndex, date, author))
     }
 
     fun remove(path: Path) {
@@ -194,16 +199,32 @@ class GithwController(var root: Path) {
      * @param[otherBranchName] Name of a branch to merge with
      * @return List of new files, which have been created due to conflicts
      */
-    fun merge(otherBranchName: String): List<Path> {
+    fun merge( otherBranchName: String,
+               message: String? = null,
+               author: String? = defaultAuthor(),
+               failOnConflict: Boolean = false ): List<Path> {
+
         checkUpToDate()
         val otherCommit = Branch.load(gitDir, otherBranchName).commit
         val otherTree = otherCommit.rootTree
         val newFiles = tree.mergeWith(otherTree, root)
+
+        if (newFiles.isNotEmpty() && failOnConflict) {
+            return newFiles
+        }
+
+        val msg = message ?: run {
+            val head = head
+            if (head is Head.BranchPointer) {
+                "Merge branches ${head.branch.name} and $otherBranchName"
+            } else {
+                "Merge commit ${commit.sha256} and branch $otherBranchName"
+            }
+        }
+
+        val parents = immutableListOf(commit, otherCommit)
         add(root)
-        val head = head
-        commit(if (head is Head.BranchPointer)
-            { "Merge branches ${head.branch.name} and $otherBranchName" }
-            else { "Merge commit ${commit.sha256} and branch $otherBranchName" })
+        commit(Commit.create(gitDir, msg, parents, treeWithIndex, Date(), author ?: defaultAuthor()))
         return newFiles
     }
 

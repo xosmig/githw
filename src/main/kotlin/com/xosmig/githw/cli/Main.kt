@@ -29,7 +29,8 @@ internal val ACTION_GROUPS = listOf(
                 "work on history and branches",
                 BranchAction(),
                 CommitAction(),
-                SwitchAction()
+                SwitchAction(),
+                MergeAction()
         )
 )
 
