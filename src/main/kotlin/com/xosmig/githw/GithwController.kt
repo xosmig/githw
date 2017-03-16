@@ -17,6 +17,9 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
 
+/**
+ * Provides most common commands to work with a repository.
+ */
 class GithwController(var root: Path) {
 
     // independent caches: head, index, ignore
@@ -45,6 +48,7 @@ class GithwController(var root: Path) {
     /**
      * Create an empty repository in the given directory.
      */
+    @Synchronized
     fun init() {
         if (exists(gitDir)) {
             throw IllegalArgumentException("$gitDir already exists")
@@ -70,6 +74,7 @@ class GithwController(var root: Path) {
         Head.BranchPointer(gitDir, branch).writeToDisk()
     }
 
+    @Synchronized
     private fun commit(newCommit: Commit) {
         Index.clear(gitDir)
         indexCache.reset()
@@ -92,10 +97,12 @@ class GithwController(var root: Path) {
      * @param[author] the name of the author of the commit
      * @param[date] date of the commit
      */
+    @Synchronized
     fun commit(message: String, date: Date = Date(), author: String = defaultAuthor()) {
         commit(Commit.create(gitDir, message, listOf(commit), treeWithIndex, date, author))
     }
 
+    @Synchronized
     fun remove(path: Path) {
         if (!exists(path)) {
             throw IllegalArgumentException("Invalid path '$path'")
@@ -117,6 +124,7 @@ class GithwController(var root: Path) {
      *
      * @param[path] path to a directory or a file to restore.
      */
+    @Synchronized
     fun revert(path: Path) {
         val obj = tree.resolve(root.relativize(path))?.loaded
                 ?: throw IllegalArgumentException("file '$path' is not tracked")
@@ -126,6 +134,7 @@ class GithwController(var root: Path) {
         obj.revert(path)
     }
 
+    @Synchronized
     fun switchBranch(branchName: String) {
         checkUpToDate()
         if (Index.load(gitDir).isNotEmpty()) {
@@ -137,6 +146,7 @@ class GithwController(var root: Path) {
         headCache.reset()
     }
 
+    @Synchronized
     fun getUntrackedAndUpdatedFiles(path: Path): List<Path> {
         return walkExclude(path, onlyFiles = true)
                 .filter { isRegularFile(it) }
@@ -146,6 +156,7 @@ class GithwController(var root: Path) {
                 }
     }
 
+    @Synchronized
     fun getUntrackedFiles(path: Path): List<Path> {
         return walkExclude(path, onlyFiles = true)
                 .filter { isRegularFile(it) && !treeWithIndex.containsFile(root.relativize(it)) }
@@ -154,6 +165,7 @@ class GithwController(var root: Path) {
     /**
      * Remove all files which are not tracked nor ignored.
      */
+    @Synchronized
     fun clean(path: Path) {
         getUntrackedFiles(path).forEach(::delete)
         walkExclude(path, childrenFirst = true, onlyFiles = false)
@@ -161,10 +173,12 @@ class GithwController(var root: Path) {
                 .forEach(::delete)
     }
 
+    @Synchronized
     fun branchExist(branchName: String): Boolean {
         return exists(gitDir.resolve(BRANCHES_PATH).resolve(branchName))
     }
 
+    @Synchronized
     fun newBranch(branchName: String) {
         if (branchExist(branchName)) {
             throw IllegalArgumentException("A branch named '$branchName' already exists.")
@@ -172,11 +186,13 @@ class GithwController(var root: Path) {
         Branch(gitDir, branchName, commit).writeToDisk()
     }
 
+    @Synchronized
     fun getBranches(): List<String> {
         val branchesDir = gitDir.resolve(BRANCHES_PATH)
         return newDirectoryStream(branchesDir).map { it.fileName.toString() }
     }
 
+    @Synchronized
     fun add(path: Path) {
         for (file in walkExclude(path, onlyFiles = true)) {
             IndexEntry.EditFile(gitDir, root.relativize(file), readAllBytes(file)).writeToDisk()
@@ -184,13 +200,16 @@ class GithwController(var root: Path) {
         indexCache.reset()
     }
 
+    @Synchronized
     fun addAll() = add(root)
 
+    @Synchronized
     fun addToIgnore(vararg patterns: String) {
         Ignore.addToRoot(root, *patterns)
         ignoreCache.reset()
     }
 
+    @Synchronized
     fun isInitialized(): Boolean = exists(gitDir)
 
     /**
@@ -199,6 +218,7 @@ class GithwController(var root: Path) {
      * @param[otherBranchName] Name of a branch to merge with
      * @return List of new files, which have been created due to conflicts
      */
+    @Synchronized
     fun merge( otherBranchName: String,
                message: String? = null,
                author: String? = defaultAuthor(),
@@ -228,29 +248,34 @@ class GithwController(var root: Path) {
         return newFiles
     }
 
+    @Synchronized
     fun checkInitialized() {
         if (!isInitialized()) {
             throw IllegalArgumentException("Not a $APP_NAME repository")
         }
     }
 
+    @Synchronized
     fun checkEmptyIndex() {
         if (index.isNotEmpty()) {
             throw IllegalArgumentException("Index must be empty. Commit or revert changes")
         }
     }
 
+    @Synchronized
     fun checkUntrackedFiles() {
         if (getUntrackedAndUpdatedFiles(root).isNotEmpty()) {
             throw IllegalArgumentException("Some changes are untracked. Commit or revert changes.")
         }
     }
 
+    @Synchronized
     fun checkUpToDate() {
         checkEmptyIndex()
         checkUntrackedFiles()
     }
 
+    @Synchronized
     fun walkExclude(path: Path,
                     childrenFirst: Boolean = false,
                     onlyFiles: Boolean = false,

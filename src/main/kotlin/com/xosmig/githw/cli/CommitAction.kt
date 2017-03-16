@@ -5,6 +5,9 @@ import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.ParseException
 
+/**
+ * Action to record changes to a repository
+ */
 internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
     override fun run(args: List<String>) {
         val options = Options()

@@ -10,13 +10,18 @@ import java.nio.file.Paths
  */
 internal abstract class Action(val description: String, val primaryName: String, vararg aliases: String) {
 
-    val githw = GithwController(Paths.get(""))
+    protected val githw = GithwController(Paths.get(""))
 
     /** Aliases can be used instead of [primaryName] to call a sub-command from console. */
     val aliases: Set<String> = setOf(*aliases)
 
     /**
-     * Execute the commands with given arguments.
+     * Execute the commands with the given arguments.
+     *
+     * @param[args] command line arguments for the sub-command (must not include sub-command name itself)
+     *
+     * @throws IllegalArgumentException in case of attempt to do something illegal with the repository
+     * @throws IllegalStateException in case of damaged or broken repository or internal assertion fault
      */
     abstract fun run(args: List<String>)
 
