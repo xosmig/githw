@@ -17,9 +17,11 @@ class Sha256 private constructor(val value: String): Serializable {
         fun get(content: String): Sha256 = get(content.toByteArray())
     }
 
-    fun pref(): String = value.take(HASH_PREF_LENGTH)
+    val pref: String
+        get() = value.take(HASH_PREF_LENGTH)
 
-    fun suf(): String = value.drop(HASH_PREF_LENGTH)
+    val suf: String
+        get() = value.drop(HASH_PREF_LENGTH)
 
     fun add(content: ByteArray): Sha256 {
         val dataStream = SequenceInputStream(content.inputStream(), value.byteInputStream())

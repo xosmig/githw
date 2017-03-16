@@ -16,7 +16,7 @@ class GitTree private constructor(gitDir: Path, val children: ImmutableMap<Strin
             val children = HashMap<String, GitObjectFromDisk>()
             for (i in 1..count) {
                 val name = ins.readObject() as String
-                children[name] = GitObjectFromDisk.create(gitDir, ins.readObject() as Sha256)
+                children[name] = GitObject.getFromDisk(gitDir, ins.readObject() as Sha256)
             }
             return GitTree(gitDir, children.toImmutableMap(), sha256)
         }

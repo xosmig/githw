@@ -32,7 +32,7 @@ abstract class GitObjectLoaded internal constructor( gitDir: Path,
     }
 
     open fun writeToDiskImpl() {
-        newOutputStream(getObjectFile()).use {
+        newOutputStream(objectFile).use {
             ObjectOutputStream(it).use {
                 it.writeObject(javaClass.name)
                 writeContentTo(it)

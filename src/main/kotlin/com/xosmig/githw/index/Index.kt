@@ -6,6 +6,11 @@ import java.nio.file.Path
 import com.xosmig.githw.index.IndexEntry.*
 import com.xosmig.githw.objects.GitTree
 
+/**
+ * Class to load and process indexed changes.
+ *
+ * @see[IndexEntry]
+ */
 class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by entries {
 
     companion object {
@@ -29,6 +34,9 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
             return Index(relevantEntries)
         }
 
+        /**
+         * Remove all index entries from the repository.
+         */
         fun clear(gitDir: Path) {
             for (file in newDirectoryStream(gitDir.resolve(INDEX_PATH))) {
                 delete(file)
@@ -36,6 +44,12 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
         }
     }
 
+    /**
+     * Apply indexed changes to a GitTree
+     *
+     * @param[tree] original tree
+     * @return tree with indexed changes applied
+     */
     fun applyToTree(tree: GitTree): GitTree {
         var res = tree
         for (entry in this) {

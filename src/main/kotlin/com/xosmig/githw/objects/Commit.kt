@@ -25,7 +25,7 @@ class Commit private constructor( gitDir: Path,
             val msg = ins.readObject() as String
             val parents = (ins.readObject() as List<*>)
                     .checkContent(Sha256::class)
-                    .map { GitObjectFromDisk.create(gitDir, it) }
+                    .map { GitObject.getFromDisk(gitDir, it) }
                     .toImmutableList()
             val rootTree = GitObject.load(gitDir, ins.readObject() as Sha256) as GitTree
             val date = ins.readObject() as Date

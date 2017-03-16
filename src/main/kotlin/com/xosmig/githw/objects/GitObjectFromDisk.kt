@@ -14,7 +14,7 @@ class GitObjectFromDisk private constructor(gitDir: Path, override val sha256: S
     override fun writeToDisk() = Unit
 
     override val loaded: GitObjectLoaded by lazy {
-        val res = newInputStream(getObjectFile()).use {
+        val res = newInputStream(objectFile).use {
             ObjectInputStream(it).use {
                 val type = it.readObject() as String
                 when (type) {
