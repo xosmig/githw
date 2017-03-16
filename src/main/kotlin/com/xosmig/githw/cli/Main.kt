@@ -62,14 +62,25 @@ fun runApp(args: Array<String>) {
         ?: cliFail("'$APP_NAME $actionName' is not a valid command. See '$APP_NAME help'")
 }
 
+/**
+ * Get action by any of its names.
+ */
 internal fun getActionByName(actionName: String): Action? {
     return ACTIONS
             .filter { it.hasName(actionName) }
             .firstOrNull()
 }
 
+/**
+ * Handle cli errors. Throws [CLIException].
+ */
 internal fun cliFail(message: String, exitCode: Int = DEFAULT_FAIL_EXITCODE): Nothing {
     throw CLIException(message, exitCode)
 }
 
-class CLIException internal constructor(message: String, val exitCode: Int): Exception(message)
+/**
+ * Class for all exceptions connected with command line interface.
+ *
+ * @param[exitCode] recommendation about exit code in case of CLI error.
+ */
+open class CLIException internal constructor(message: String, val exitCode: Int): Exception(message)

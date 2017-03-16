@@ -5,6 +5,9 @@ val ILLEGAL_ARGUMENT_EXIT_CODE = 17
 val ILLEGAL_STATE_EXIT_CODE = 23
 val NOT_IMPLEMENTED_EXIT_CODE = 67
 
+/**
+ * Provides default behaviour of githw as console application
+ */
 fun main(args: Array<String>) {
     try {
         runApp(args)

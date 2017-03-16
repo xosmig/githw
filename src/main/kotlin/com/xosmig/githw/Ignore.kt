@@ -6,6 +6,12 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.stream.Collectors
 
+/**
+ * Class to manage ignored files. Any file which path from root matches one of the regular expressions
+ * in some specific files will be ignored.
+ *
+ * @param[templates] regular expressions for paths to ignore.
+ */
 class Ignore private constructor(templates: List<String>) {
 
     private val matcher = MultiPattern.of(templates).matcher()
@@ -16,6 +22,9 @@ class Ignore private constructor(templates: List<String>) {
         private fun loadListFromFile(file: Path) = lines(file)
                 .collect(Collectors.toList())
 
+        /**
+         * Load regular expressions to ignore from
+         */
         fun loadFromRoot(root: Path): Ignore {
             val templates = loadListFromFile(root.resolve(GIT_DIR_PATH).resolve(EXCLUDE_PATH))
             if (exists(root.resolve(IGNORE_PATH))) {
