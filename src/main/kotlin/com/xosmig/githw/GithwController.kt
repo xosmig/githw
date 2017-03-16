@@ -46,7 +46,7 @@ class GithwController(var root: Path) {
     val treeWithIndex by treeWithIndexCache
 
     /**
-     * Create an empty repository in the given directory.
+     * Create an empty repository in [root].
      */
     @Synchronized
     fun init() {
@@ -134,6 +134,11 @@ class GithwController(var root: Path) {
         obj.revert(path)
     }
 
+    /**
+     * Switch the current branch to [branchName] and updated the working directory.
+     *
+     * @param[branchName] a branch to switch to.
+     */
     @Synchronized
     fun switchBranch(branchName: String) {
         checkUpToDate()
@@ -146,6 +151,13 @@ class GithwController(var root: Path) {
         headCache.reset()
     }
 
+    /**
+     * Delete the given branch.
+     *
+     * @param[branchName] a branch to delete.
+     *
+     * @throws[IllegalArgumentException] if [branchName] is a current branch or doesn't exist
+     */
     @Synchronized
     fun deleteBranch(branchName: String) {
         val head = head
@@ -213,23 +225,36 @@ class GithwController(var root: Path) {
         indexCache.reset()
     }
 
+    /**
+     * Add all unstaged changes to index.
+     */
     @Synchronized
     fun addAll() = add(root)
 
+    /**
+     * Add pattern to ignore file in the root directory.
+     */
     @Synchronized
     fun addToIgnore(vararg patterns: String) {
         Ignore.addToRoot(root, *patterns)
         ignoreCache.reset()
     }
 
+    /**
+     * Returns true if there is a githw repository in the current dir.
+     */
     @Synchronized
     fun isInitialized(): Boolean = exists(gitDir)
 
     /**
      * Merge current branch with another.
      *
-     * @param[otherBranchName] Name of a branch to merge with
-     * @return List of new files, which have been created due to conflicts
+     * @param[otherBranchName] name of a branch to merge with
+     * @param[message] message for the merge-commit
+     * @param[author] set the author of the merge-commit
+     * @param[failOnConflict] if this parameter is set, merge will be stopped in case of any conflicts
+     *
+     * @return list of new files, which have been created due to conflicts
      */
     @Synchronized
     fun merge( otherBranchName: String,
@@ -261,6 +286,11 @@ class GithwController(var root: Path) {
         return newFiles
     }
 
+    /**
+     * Check that there are no untracked files in the working directory.
+     *
+     * @throws IllegalArgumentException if check has failed.
+     */
     @Synchronized
     fun checkInitialized() {
         if (!isInitialized()) {
@@ -268,6 +298,11 @@ class GithwController(var root: Path) {
         }
     }
 
+    /**
+     * Check that index is empty.
+     *
+     * @throws IllegalArgumentException if check has failed.
+     */
     @Synchronized
     fun checkEmptyIndex() {
         if (index.isNotEmpty()) {
@@ -275,24 +310,39 @@ class GithwController(var root: Path) {
         }
     }
 
+    /**
+     * Check that there are no untracked files in the working directory.
+     *
+     * @throws IllegalArgumentException if check has failed.
+     */
     @Synchronized
-    fun checkUntrackedFiles() {
+    fun checkNoUntrackedFiles() {
         if (getUntrackedAndUpdatedFiles(root).isNotEmpty()) {
             throw IllegalArgumentException("Some changes are untracked. Commit or revert changes.")
         }
     }
 
+    /**
+     * Check that repository is up to date. I.e. there are no untracked files and index is empty.
+     *
+     * @throws IllegalArgumentException if check has failed.
+     */
     @Synchronized
     fun checkUpToDate() {
         checkEmptyIndex()
-        checkUntrackedFiles()
+        checkNoUntrackedFiles()
     }
 
+    /**
+     * Walk a file tree, ignore files form [ignore].
+     *
+     * @param[start] the starting path
+     * @param[childrenFirst] if this parameter is set,
+     * output will contain all children of a tree before the tree itself.
+     * @param[onlyFiles] if this parameter is set, output will contain only files
+     */
     @Synchronized
-    fun walkExclude(path: Path,
-                    childrenFirst: Boolean = false,
-                    onlyFiles: Boolean = false,
-                    ignore: Ignore = Ignore.loadFromRoot(root) ): List<Path> {
+    fun walkExclude(start: Path, childrenFirst: Boolean = false, onlyFiles: Boolean = false ): List<Path> {
 
         val res = ArrayList<Path>()
 
@@ -315,7 +365,7 @@ class GithwController(var root: Path) {
             }
         }
 
-        impl(path)
+        impl(start)
         return res
     }
 }
