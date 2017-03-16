@@ -2,9 +2,22 @@ package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
 
+/**
+ * Maximum allowed length of a sub-command's name.
+ * Used to format lists of commands.
+ */
 internal val MAX_COMMAND_LENGTH = 10
+
+/**
+ * The program will return this exitcode on fail there if there is no specified exitcode.
+ */
 internal val DEFAULT_FAIL_EXITCODE = 2
 
+/**
+ * Structure of this value represents help message's structure.
+ *
+ * Each available action must be in exactly one of these groups.
+ */
 internal val ACTION_GROUPS = listOf(
         ActionGroup (
                 "information",
@@ -34,7 +47,10 @@ internal val ACTION_GROUPS = listOf(
         )
 )
 
-internal val ACTIONS = ACTION_GROUPS.flatMap { it.actions.asList() }
+/**
+ * List of all available actions sorted by primary name.
+ */
+internal val ACTIONS = ACTION_GROUPS.flatMap { it.actions.asList() }.sortedBy { it.primaryName }
 
 fun runApp(args: Array<String>) {
     if (args.isEmpty()) {

@@ -3,7 +3,7 @@ package com.xosmig.githw.cli
 import org.apache.commons.cli.*
 
 /**
- * Action to record changes to a repository
+ * Action to record changes to a repository.
  */
 internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
 

@@ -6,7 +6,7 @@ import org.apache.commons.cli.Options
 import org.apache.commons.cli.ParseException
 
 /**
- * Action to list, create, or delete branches
+ * Action to list, create, or delete branches.
  */
 internal class BranchAction : Action("List, create, or delete branches", "branch", "br") {
 

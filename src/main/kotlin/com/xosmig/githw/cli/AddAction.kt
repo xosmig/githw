@@ -3,7 +3,7 @@ package com.xosmig.githw.cli
 import java.nio.file.Paths
 
 /**
- * Adds file's contents to the index.
+ * Action to add files' content to the index.
  */
 internal class AddAction : Action("Add file's content to the index", "add") {
     override fun run(args: List<String>) {

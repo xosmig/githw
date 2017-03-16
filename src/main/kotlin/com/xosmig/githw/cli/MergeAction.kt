@@ -7,7 +7,7 @@ import org.apache.commons.cli.Options
 import org.apache.commons.cli.ParseException
 
 /**
- * Action to join two branches together
+ * Action to join two branches together.
  */
 internal class MergeAction : Action("Join two branches together", "merge") {
     override fun run(args: List<String>) {

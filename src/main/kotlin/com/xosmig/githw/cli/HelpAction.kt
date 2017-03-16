@@ -3,7 +3,7 @@ package com.xosmig.githw.cli
 import com.xosmig.githw.APP_NAME
 
 /**
- * Action to show help message
+ * Action to show help message.
  */
 internal class HelpAction : Action("Show this message", "help", "h", "-h", "-help", "--help") {
     override fun run(args: List<String>) {

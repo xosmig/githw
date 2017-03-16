@@ -1,7 +1,7 @@
 package com.xosmig.githw.cli
 
 /**
- * Shows aliases for all commands.
+ * Action to show aliases for all commands.
  */
 internal class AliasAction : Action("Show aliases for all commands", "alias", "aliases") {
     override fun run(args: List<String>) {
