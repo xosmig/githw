@@ -147,6 +147,19 @@ class GithwController(var root: Path) {
     }
 
     @Synchronized
+    fun deleteBranch(branchName: String) {
+        val head = head
+        if (head is Head.BranchPointer && head.branch.name == branchName) {
+            throw IllegalArgumentException("Can not remove the current branch: '$branchName'")
+        }
+        val path = gitDir.resolve(BRANCHES_PATH).resolve(branchName)
+        if (!exists(path)) {
+            throw IllegalArgumentException("Branch '$branchName' doesn't exist")
+        }
+        delete(path)
+    }
+
+    @Synchronized
     fun getUntrackedAndUpdatedFiles(path: Path): List<Path> {
         return walkExclude(path, onlyFiles = true)
                 .filter { isRegularFile(it) }

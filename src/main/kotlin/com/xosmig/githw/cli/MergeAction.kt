@@ -18,7 +18,7 @@ internal class MergeAction : Action("Join two branches together", "merge") {
         val message = Option("m", "message", true, "Use the given parameter as the commit message")
         options.addOption(message)
 
-        val author = Option("a", "author", true, "Set the author of the commit")
+        val author = Option("a", "author", true, "Set the author of the merge-commit")
         options.addOption(author)
 
         val failOnConflictOpt = Option(null, "fail-on-conflict", false, "Stop merge if there are any conflicts")

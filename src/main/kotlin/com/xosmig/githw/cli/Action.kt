@@ -28,7 +28,8 @@ internal abstract class Action(val description: String, val primaryName: String,
     /**
      * Creates messages for errors which happened during action processing.
      */
-    private fun formatFail(message: String): String = "$APP_NAME $primaryName: $message"
+    private fun formatFail(message: String): String = "$APP_NAME $primaryName: $message\n" +
+                                                        "See '$APP_NAME help $primaryName' for more information"
 
     /**
      * Fail with the given message.

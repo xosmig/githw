@@ -1,24 +1,23 @@
 package com.xosmig.githw.cli
 
-import org.apache.commons.cli.DefaultParser
-import org.apache.commons.cli.Option
-import org.apache.commons.cli.Options
-import org.apache.commons.cli.ParseException
+import org.apache.commons.cli.*
 
 /**
  * Action to record changes to a repository
  */
 internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
-    override fun run(args: List<String>) {
-        val options = Options()
 
-        val messageOpt = Option("m", "message", true, "Use the given parameter as the commit message")
+    private val options = Options()
+    private val messageOpt = Option("m", "message", true, "Use the given parameter as the commit message")
+    private val authorOpt = Option("a", "author", true, "Set the author of the commit")
+
+    init {
         messageOpt.isRequired = true
         options.addOption(messageOpt)
-
-        val authorOpt = Option("a", "author", true, "Set the author of the commit")
         options.addOption(authorOpt)
+    }
 
+    override fun run(args: List<String>) {
         val parser = DefaultParser()
 
         val line = try {
