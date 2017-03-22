@@ -5,6 +5,10 @@ package com.xosmig.githw.cli
  */
 internal class LogAction : Action("Show commit log", "log") {
     override fun run(args: List<String>) {
-        TODO("log action")
+        checkArgNumber(exact = 0, actual = args.size)
+        val log = githw.getLog()
+        for (commit in log) {
+            println(commit)
+        }
     }
 }

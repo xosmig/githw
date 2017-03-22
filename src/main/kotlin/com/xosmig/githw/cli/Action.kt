@@ -3,7 +3,6 @@ package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
 import com.xosmig.githw.controller.BasicGithwController
-import com.xosmig.githw.controller.GithwController
 import java.nio.file.Paths
 
 /**

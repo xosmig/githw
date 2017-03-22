@@ -72,6 +72,17 @@ class Commit private constructor( githw: GithwController,
 
     @Throws(IOException::class)
     fun writeToHead(ins: ObjectOutputStream) = ins.writeObject(sha256)
+
+    override fun toString(): String {
+        val tab = '\t'
+        return """
+            |commit $sha256
+            |Author:$tab$author
+            |Date:$tab$date
+            |
+            |$tab$message
+            |""".trimMargin()
+    }
 }
 
 

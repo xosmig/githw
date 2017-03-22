@@ -7,21 +7,21 @@ class CacheTest {
 
     val events = StringBuilder()
 
-    val a = Cache({ events.append('a') })
-    val b = Cache({ events.append('b') }, a)
-    val c = Cache({ events.append('c') }, b)
-    val d = Cache({ events.append('d') })
-    val e = Cache({ events.append('e') }, d, c)
+    val a = cache { events.append('a') }
+    val b = cache(a) { events.append('b') }
+    val c = cache(b) { events.append('c') }
+    val d = cache { events.append('d') }
+    val e = cache(d, c) { events.append('e') }
 
     @Test
     fun testDeps() {
         d.reset()
-        b.evaluate()
-        e.evaluate()
-        a.evaluate()
+        b.update()
+        e.update()
+        a.update()
         a.reset()
         d.reset()
-        c.evaluate()
+        c.update()
 
         assertEquals("abdceabc", events.toString())
     }

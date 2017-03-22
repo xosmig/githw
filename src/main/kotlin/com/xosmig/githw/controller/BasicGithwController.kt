@@ -9,15 +9,14 @@ import com.xosmig.githw.objects.Commit.Companion.createCommit
 import com.xosmig.githw.objects.Commit.Companion.defaultAuthor
 import com.xosmig.githw.objects.GitFSObject
 import com.xosmig.githw.objects.GitFile
-import com.xosmig.githw.objects.GitTree
 import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.refs.Branch
 import com.xosmig.githw.refs.Branch.Companion.createBranch
 import com.xosmig.githw.refs.Branch.Companion.loadBranch
 import com.xosmig.githw.refs.Head
-import com.xosmig.githw.utils.Cache
 import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
+import com.xosmig.githw.utils.cache
 import java.nio.file.Files.*
 import java.nio.file.Path
 import java.util.*
@@ -32,24 +31,23 @@ class BasicGithwController(override var root: Path): GithwController {
     // independent caches: head, index, ignore
 
     override val gitDir = root.resolve(GIT_DIR_PATH)!!
-    val initialized = Cache({ checkInitialized() })
 
-    val headCache = Cache({ Head.load(this) }, initialized)
+    val headCache = cache { checkInitialized(); Head.load(this) }
     override val head by headCache
 
-    val commitCache = Cache({ head.commit }, headCache)
+    val commitCache = cache(headCache) { head.commit }
     override val commit by commitCache
 
-    val treeCache = Cache({ commit.rootTree }, commitCache)
+    val treeCache = cache(commitCache) { commit.rootTree }
     override val tree get() = commit.rootTree
 
-    val indexCache = Cache({ Index.load(this) }, initialized)
+    val indexCache = cache { checkInitialized(); Index.load(this) }
     override val index by indexCache
 
-    val ignoreCache = Cache({ Ignore.loadFromRoot(root) }, initialized)
+    val ignoreCache = cache { checkInitialized(); Ignore.loadFromRoot(root) }
     override val ignore by ignoreCache
 
-    val treeWithIndexCache = Cache({ index.applyToTree(tree) }, indexCache, treeCache)
+    val treeWithIndexCache = cache(indexCache, treeCache) { index.applyToTree(tree) }
     override val treeWithIndex by treeWithIndexCache
 
     /**
@@ -79,6 +77,23 @@ class BasicGithwController(override var root: Path): GithwController {
         val branch = createBranch("master", commit)
         branch.writeToDisk()
         writeToHead(branch)
+    }
+
+    fun getLog(): List<Commit> {
+        val timeOut = IdentityHashMap<Commit, Int>()
+        var time = 0
+
+        fun Commit.dfs() {
+            if (timeOut.containsKey(this)) { return }
+            time += 1
+            for (parent in parents) {
+                (parent.loaded as Commit).dfs()
+            }
+            timeOut[this] = time
+        }
+        commit.dfs()
+
+        return timeOut.toList().sortedBy { it.second }.map { it.first }
     }
 
     fun writeToHead(branch: Branch): Unit = Head.BranchPointer(this, branch).writeToDisk()
