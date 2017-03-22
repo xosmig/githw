@@ -4,14 +4,15 @@ import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import com.xosmig.githw.controller.BasicGithwController
 import com.xosmig.githw.testutils.RandomUtils
-import org.junit.Before
-import java.nio.file.Files.createDirectories
+import com.xosmig.githw.utils.Sha256
+import java.nio.file.FileSystem
+import java.nio.file.Path
 
 abstract class GithwTestClass {
-    val fs = Jimfs.newFileSystem(Configuration.unix())!!
+    val fs: FileSystem = Jimfs.newFileSystem(Configuration.unix())
     val rootDirName = "projectRoot"
-    val root = fs.getPath("/$rootDirName")!!
+    val root: Path = fs.getPath("/$rootDirName")
     val randomUtils = RandomUtils()
-    val gitDir = root.resolve(GIT_DIR_PATH)!!
+    val gitDir: Path = root.resolve(GIT_DIR_PATH)
     val githw = BasicGithwController.init(root)
 }

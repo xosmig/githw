@@ -32,7 +32,7 @@ class IgnoreTest : GithwTestClass() {
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
         val githwCopy = BasicGithwController(newRoot)
-        githwCopy.revert(newRoot)
+        githwCopy.restore(newRoot)
 
         assertFalse(exists(newRoot.resolve("bar")))
         assertTrue(exists(newRoot.resolve("qwe")))

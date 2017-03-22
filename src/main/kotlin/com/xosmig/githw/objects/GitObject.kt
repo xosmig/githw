@@ -42,4 +42,8 @@ abstract class GitObject internal constructor(protected val githw: GithwControll
      * Provides lazy loading of git objects from disk.
      */
     abstract val loaded: GitObjectLoaded
+
+    override fun equals(other: Any?): Boolean = other is GitObject && other.sha256 == sha256
+
+    override fun hashCode(): Int = sha256.hashCode()
 }

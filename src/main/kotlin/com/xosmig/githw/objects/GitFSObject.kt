@@ -9,7 +9,7 @@ import java.util.*
 abstract class GitFSObject internal constructor(githw: GithwController,
                                                 knownSha256: Sha256? ): GitObjectLoaded(githw, knownSha256) {
 
-    abstract fun revert(path: Path)
+    abstract fun restore(path: Path)
 
     protected abstract fun mergeWith(other: GitFSObject, path: Path, newFiles: MutableList<Path>)
 

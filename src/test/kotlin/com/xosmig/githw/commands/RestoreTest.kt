@@ -9,10 +9,10 @@ import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import java.nio.file.Files.*
 
-class RevertCommandTest: GithwTestClass() {
+class RestoreTest : GithwTestClass() {
 
     @Test
-    fun revertSingleRemovedFile() {
+    fun restoreSingleRemovedFile() {
         val filePath = root.resolve("file.txt")
         val content = "Hello, World".toByteArray()
         newOutputStream(filePath).use {
@@ -22,12 +22,12 @@ class RevertCommandTest: GithwTestClass() {
         githw.commit("test: file '$filePath' added")
 
         delete(filePath)
-        githw.revert(filePath)
+        githw.restore(filePath)
         assertArrayEquals(content, readAllBytes(filePath))
     }
 
     @Test
-    fun revertEmptyRootDirectory() {
+    fun restoreEmptyRootDirectory() {
         randomUtils.randomDirectory(root)
         githw.add(root)
         githw.commit("test: random directory created.")
@@ -37,7 +37,7 @@ class RevertCommandTest: GithwTestClass() {
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
         val newGithw = BasicGithwController(newRoot)
-        newGithw.revert(newRoot)
+        newGithw.restore(newRoot)
 
         assertEquals(sha256, countSha256(newRoot))
     }

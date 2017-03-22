@@ -153,13 +153,13 @@ class GitTree private constructor( githw: GithwController,
         }
     }
 
-    override fun revert(path: Path) {
+    override fun restore(path: Path) {
         for ((name, child) in children) {
             val loaded = child.loaded
             if (loaded !is GitFSObject) {
                 throw IllegalStateException("Unknown child type in `GitTree`: '${loaded.javaClass.name}'")
             }
-            loaded.revert(path.resolve(name))
+            loaded.restore(path.resolve(name))
         }
     }
 
@@ -176,11 +176,11 @@ class GitTree private constructor( githw: GithwController,
                 if (child != null) {
                     child.mergeWith(otherChild, path.resolve(name))
                 } else {
-                    otherChild.revert(path.resolve(name))
+                    otherChild.restore(path.resolve(name))
                 }
             }
         } else if (other is GitFile) {
-            other.revert(resolveConflictPath(path, newFiles))
+            other.restore(resolveConflictPath(path, newFiles))
         } else {
             throw IllegalStateException("Unknown file system type: '${loaded.javaClass.name}'")
         }

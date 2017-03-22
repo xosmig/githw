@@ -27,7 +27,7 @@ import java.util.*
 /**
  * Provides most common commands to work with a repository.
  */
-class BasicGithwController(override val root: Path): GithwController {
+class BasicGithwController(root: Path): GithwController {
 
     companion object {
         /**
@@ -68,6 +68,8 @@ class BasicGithwController(override val root: Path): GithwController {
 
         fun isInitializedIn(root: Path): Boolean = exists(root.resolve(GIT_DIR_PATH))
     }
+
+    override val root: Path = root.toAbsolutePath()
 
     override val loadedCache: LoadedObjectsCache = LoadedObjectsCachePermanent()
 
@@ -116,13 +118,13 @@ class BasicGithwController(override val root: Path): GithwController {
     fun writeToHead(commit: Commit) { Head.CommitPointer(this, commit).writeToDisk() }
 
     @Synchronized
-    fun detachHead(sha256: Sha256) {
+    fun detach(sha256: Sha256) {
         checkUpToDate()
         val commit = loadObject(sha256) as? Commit
                 ?: throw IllegalArgumentException("Not a real commit hash: '$commit'")
         writeToHead(commit)
         headCache.reset()
-        cleanAndRevertAll()
+        cleanAndRestoreAll()
     }
 
     @Synchronized
@@ -171,29 +173,29 @@ class BasicGithwController(override val root: Path): GithwController {
     }
 
     /**
-     * Discard files' modifications.
+     * Restore working tree files.
      *
-     * @param[path] path to a directory or a file to revert.
+     * @param[path] path to a directory or a file to restore.
      */
     @Synchronized
-    fun revert(path: Path) {
+    fun restore(path: Path) {
         val obj = tree.resolve(root.relativize(path))?.loaded
                 ?: throw IllegalArgumentException("file '$path' is not tracked")
         if (obj !is GitFSObject) {
             throw IllegalArgumentException("Bad object type to refresh: '${obj.javaClass.name}'")
         }
-        obj.revert(path)
+        obj.restore(path)
     }
 
     /**
-     * Discard all files' modifications.
+     * Restore all files.
      */
     @Synchronized
-    fun revertAll() { revert(root) }
+    fun restoreAll() { restore(root) }
 
     @Synchronized
-    fun cleanAndRevertAll() {
-        revertAll()
+    fun cleanAndRestoreAll() {
+        restoreAll()
         cleanAll()
     }
 
@@ -207,7 +209,7 @@ class BasicGithwController(override val root: Path): GithwController {
         checkUpToDate()
 
         writeToHead(loadBranch(branchName))
-        cleanAndRevertAll()
+        cleanAndRestoreAll()
 
         headCache.reset()
     }
@@ -239,7 +241,7 @@ class BasicGithwController(override val root: Path): GithwController {
                 .map { root.relativize(it) }
                 .filter {
                     val gitObj = treeWithIndex.resolve(it)?.loaded
-                    gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(it)
+                    gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(root.resolve(it))
                 }
     }
 
@@ -255,9 +257,10 @@ class BasicGithwController(override val root: Path): GithwController {
      * Remove all files which are not tracked nor ignored and empty directories.
      */
     @Synchronized
-    fun clean(path: Path) {
-        getUntrackedFiles(path).forEach { delete(root.resolve(it)) }
-        walkExclude(path, childrenFirst = true, onlyFiles = false)
+    fun clean(start: Path) {
+        getUntrackedFiles(start).forEach { delete(root.resolve(it)) }
+        walkExclude(start, childrenFirst = true, onlyFiles = false)
+                .asSequence()  // important
                 .filter(::isEmptyDir)
                 .forEach(::delete)
     }
@@ -368,7 +371,7 @@ class BasicGithwController(override val root: Path): GithwController {
     @Synchronized
     fun checkEmptyIndex() {
         if (index.isNotEmpty()) {
-            throw IllegalArgumentException("Index must be empty. Commit or revert changes")
+            throw IllegalArgumentException("Index must be empty. Commit or restore changes")
         }
     }
 
@@ -380,7 +383,7 @@ class BasicGithwController(override val root: Path): GithwController {
     @Synchronized
     fun checkNoUntrackedFiles() {
         if (getUntrackedAndUpdatedFiles(root).isNotEmpty()) {
-            throw IllegalArgumentException("Some changes are untracked. Commit or revert changes.")
+            throw IllegalArgumentException("Some changes are untracked. Commit or restore changes.")
         }
     }
 
