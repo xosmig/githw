@@ -23,7 +23,7 @@ internal class HelpAction : Action("Show this message", "help", "h", "-h", "-hel
         println("Commands:")
         println()
         for (group in ACTION_GROUPS) {
-            group.print()
+            group.printWithComments { it.description }
             println()
         }
         println("See '$APP_NAME help <command>' to read about a specific sub-command")

@@ -8,8 +8,23 @@ internal class AliasAction : Action("Show aliases for all commands", "alias", "a
         checkArgNumber(args.size, exact = 0)
 
         println("Aliases can be used instead of primary name to call a sub-command from console")
-        for (action in ACTIONS.filter { it.aliases.isNotEmpty() }) {
-            println(action.formatWithComment(action.aliases.toString().drop(1).dropLast(1)))
+        println()
+
+        for (group in ACTION_GROUPS) {
+            group.printWithComments {
+                if (it.aliases.isEmpty()) {
+                    "no aliases"
+                } else {
+                    val builder = StringBuilder()
+                    builder.append(it.aliases.first())
+                    for (alias in it.aliases.drop(1)) {
+                        builder.append(", ")
+                        builder.append(alias)
+                    }
+                    builder.toString()
+                }
+            }
+            println()
         }
     }
 }
