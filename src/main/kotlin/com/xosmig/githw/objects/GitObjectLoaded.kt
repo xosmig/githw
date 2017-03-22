@@ -1,13 +1,14 @@
 package com.xosmig.githw.objects
 
+import com.xosmig.githw.controller.GithwController
 import com.xosmig.githw.utils.Sha256
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Files.*
 import java.nio.file.Path
 
-abstract class GitObjectLoaded internal constructor( gitDir: Path,
-                                                     private val knownSha256: Sha256? ): GitObject(gitDir) {
+abstract class GitObjectLoaded internal constructor( githw: GithwController,
+                                                     private val knownSha256: Sha256? ): GitObject(githw) {
 
     private var onDisk = knownSha256 != null
 

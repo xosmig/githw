@@ -1,26 +1,26 @@
 package com.xosmig.githw.refs
 
-import com.xosmig.githw.HEAD_PATH
+import com.xosmig.githw.controller.GithwController
 import com.xosmig.githw.objects.Commit
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Files.*
-import java.nio.file.Path
 
 /**
  * HEAD is either a pointer to a branch or a pointer to a commit (detached HEAD).
  */
-abstract class Head private constructor(protected val gitDir: Path) {
+abstract class Head private constructor(protected val githw: GithwController) {
+
     companion object {
         @Throws(IOException::class)
-        fun load(gitDir: Path): Head {
-            newInputStream(gitDir.resolve(HEAD_PATH)).use {
+        fun load(githw: GithwController): Head {
+            newInputStream(githw.headPath).use {
                 ObjectInputStream(it).use {
                     val type = it.readObject() as String
                     return when (type) {
-                        Branch::class.java.name -> BranchPointer(gitDir, Branch.loadFromHead(gitDir, it))
-                        Commit::class.java.name -> CommitPointer(gitDir, Commit.loadFromHead(gitDir, it))
+                        Branch::class.java.name -> BranchPointer(githw, Branch.loadFromHead(githw, it))
+                        Commit::class.java.name -> CommitPointer(githw, Commit.loadFromHead(githw, it))
                         else -> throw IllegalStateException("Unknown head type: '$type'")
                     }
                 }
@@ -32,9 +32,9 @@ abstract class Head private constructor(protected val gitDir: Path) {
 
     abstract val commit: Commit
 
-    class BranchPointer(gitDir: Path, val branch: Branch): Head(gitDir) {
+    class BranchPointer(githw: GithwController, val branch: Branch): Head(githw) {
         override fun writeToDisk() {
-            newOutputStream(gitDir.resolve(HEAD_PATH)).use {
+            newOutputStream(githw.headPath).use {
                 ObjectOutputStream(it).use {
                     it.writeObject(Branch::class.java.name)
                     branch.writeToHead(it)
@@ -47,9 +47,9 @@ abstract class Head private constructor(protected val gitDir: Path) {
         override fun toString(): String = "On branch $branch"
     }
 
-    class CommitPointer(gitDir: Path, override val commit: Commit): Head(gitDir) {
+    class CommitPointer(githw: GithwController, override val commit: Commit): Head(githw) {
         override fun writeToDisk() {
-            newOutputStream(gitDir.resolve(HEAD_PATH)).use {
+            newOutputStream(githw.headPath).use {
                 ObjectOutputStream(it).use {
                     it.writeObject(Branch::class.java.name)
                     commit.writeToHead(it)
@@ -57,7 +57,7 @@ abstract class Head private constructor(protected val gitDir: Path) {
             }
         }
 
-        fun copy(commit: Commit = this.commit) = CommitPointer(gitDir, commit)
+        fun copy(commit: Commit = this.commit) = CommitPointer(githw, commit)
 
         override fun toString(): String = "Detached head: ${commit.sha256}"
     }

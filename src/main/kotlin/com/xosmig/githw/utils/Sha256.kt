@@ -5,7 +5,7 @@ import java.io.SequenceInputStream
 import java.io.Serializable
 
 /**
- * Type-safe wrapper for getSha256 hash.
+ * Type-safe wrapper for sha256 hash.
  */
 class Sha256 private constructor(val value: String): Serializable {
 

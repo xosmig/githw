@@ -1,12 +1,13 @@
 package com.xosmig.githw.objects
 
+import com.xosmig.githw.controller.GithwController
 import java.nio.file.Path
 import com.xosmig.githw.utils.Sha256
 import java.nio.file.Files.exists
 import java.util.*
 
-abstract class GitFSObject internal constructor(gitDir: Path,
-                                                knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256) {
+abstract class GitFSObject internal constructor(githw: GithwController,
+                                                knownSha256: Sha256? ): GitObjectLoaded(githw, knownSha256) {
 
     abstract fun revert(path: Path)
 

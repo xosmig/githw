@@ -1,5 +1,6 @@
 package com.xosmig.githw
 
+import com.xosmig.githw.controller.BasicGithwController
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import org.junit.Assert.*
 import org.junit.Test
@@ -30,7 +31,7 @@ class IgnoreTest : GithwTestClass() {
         val newRoot = fs.getPath("/new/$rootDirName")
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        val githwCopy = GithwController(newRoot)
+        val githwCopy = BasicGithwController(newRoot)
         githwCopy.revert(newRoot)
 
         assertFalse(exists(newRoot.resolve("bar")))

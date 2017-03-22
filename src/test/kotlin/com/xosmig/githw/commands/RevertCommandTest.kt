@@ -1,8 +1,8 @@
 package com.xosmig.githw.commands
 
 import com.xosmig.githw.GIT_DIR_PATH
-import com.xosmig.githw.GithwController
 import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.controller.BasicGithwController
 import org.junit.Assert.*
 import org.junit.Test
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
@@ -36,7 +36,7 @@ class RevertCommandTest: GithwTestClass() {
         val newRoot = fs.getPath("/new/$rootDirName")
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        val newGithw = GithwController(newRoot)
+        val newGithw = BasicGithwController(newRoot)
         newGithw.revert(newRoot)
 
         assertEquals(sha256, countSha256(newRoot))

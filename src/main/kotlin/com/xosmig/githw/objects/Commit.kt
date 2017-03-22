@@ -3,6 +3,9 @@ package com.xosmig.githw.objects
 
 import com.github.andrewoma.dexx.kollection.ImmutableList
 import com.github.andrewoma.dexx.kollection.toImmutableList
+import com.xosmig.githw.controller.GithwController
+import com.xosmig.githw.objects.GitObjectFromDisk.Companion.getObjectFromDisk
+import com.xosmig.githw.objects.GitObjectFromDisk.Companion.loadObject
 import com.xosmig.githw.utils.Sha256
 import java.io.IOException
 import java.io.ObjectInputStream
@@ -11,37 +14,37 @@ import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.checkContent
 
-class Commit private constructor( gitDir: Path,
+class Commit private constructor( githw: GithwController,
                                   val message: String,
                                   val parents: ImmutableList<GitObject>,
                                   val rootTree: GitTree,
                                   val date: Date,
                                   val author: String = defaultAuthor(),
-                                  knownSha256: Sha256? ): GitObjectLoaded(gitDir, knownSha256 ) {
+                                  knownSha256: Sha256? ): GitObjectLoaded(githw, knownSha256 ) {
 
     companion object {
         @Throws(IOException::class)
-        fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): Commit {
+        internal fun GithwController.loadCommit(sha256: Sha256, ins: ObjectInputStream): Commit {
             val msg = ins.readObject() as String
             val parents = (ins.readObject() as List<*>)
                     .checkContent(Sha256::class)
-                    .map { GitObject.getFromDisk(gitDir, it) }
+                    .map { getObjectFromDisk(it) }
                     .toImmutableList()
-            val rootTree = GitObject.load(gitDir, ins.readObject() as Sha256) as GitTree
+            val rootTree = loadObject(ins.readObject() as Sha256) as GitTree
             val date = ins.readObject() as Date
             val author = ins.readObject() as String
 
-            return Commit(gitDir, msg, parents, rootTree, date, author, sha256)
+            return Commit(this, msg, parents, rootTree, date, author, sha256)
         }
 
         @Throws(IOException::class)
-        fun loadFromHead(gitDir: Path, ins: ObjectInputStream): Commit {
-            return GitObject.load(gitDir, ins.readObject() as Sha256) as Commit
+        fun loadFromHead(githw: GithwController,ins: ObjectInputStream): Commit {
+            return githw.loadObject(ins.readObject() as Sha256) as Commit
         }
 
-        fun create(gitDir: Path, message: String, parents: List<GitObject>, rootTree: GitTree,
+        fun GithwController.createCommit(message: String, parents: List<GitObject>, rootTree: GitTree,
                    date: Date = Date(), author: String = defaultAuthor()): Commit {
-            return Commit(gitDir, message, parents.toImmutableList(), rootTree, date, author, knownSha256 = null)
+            return Commit(this, message, parents.toImmutableList(), rootTree, date, author, knownSha256 = null)
         }
 
         fun defaultAuthor(): String = System.getProperty("user.name")
@@ -51,7 +54,7 @@ class Commit private constructor( gitDir: Path,
               parents: ImmutableList<GitObject> = this.parents,
               rootTree: GitTree = this.rootTree,
               date: Date = this.date,
-              author: String = this.author ) = create(gitDir, message, parents, rootTree, date, author)
+              author: String = this.author ) = githw.createCommit(message, parents, rootTree, date, author)
 
     override fun writeToDiskImpl() {
         super.writeToDiskImpl()

@@ -2,7 +2,8 @@
 package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
-import com.xosmig.githw.GithwController
+import com.xosmig.githw.controller.BasicGithwController
+import com.xosmig.githw.controller.GithwController
 import java.nio.file.Paths
 
 /**
@@ -10,7 +11,7 @@ import java.nio.file.Paths
  */
 internal abstract class Action(val description: String, val primaryName: String, vararg aliases: String) {
 
-    protected val githw = GithwController(Paths.get(""))
+    protected val githw = BasicGithwController(Paths.get(""))  // FIXME
 
     /** Aliases can be used instead of [primaryName] to call a sub-command from console. */
     val aliases: Set<String> = setOf(*aliases)

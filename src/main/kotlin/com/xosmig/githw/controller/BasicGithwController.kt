@@ -1,14 +1,19 @@
-package com.xosmig.githw
+package com.xosmig.githw.controller
 
 import com.github.andrewoma.dexx.kollection.immutableListOf
+import com.xosmig.githw.*
 import com.xosmig.githw.index.Index
 import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.objects.Commit
+import com.xosmig.githw.objects.Commit.Companion.createCommit
 import com.xosmig.githw.objects.Commit.Companion.defaultAuthor
 import com.xosmig.githw.objects.GitFSObject
 import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitTree
+import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.refs.Branch
+import com.xosmig.githw.refs.Branch.Companion.createBranch
+import com.xosmig.githw.refs.Branch.Companion.loadBranch
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.Cache
 import com.xosmig.githw.utils.FilesUtils
@@ -20,30 +25,32 @@ import java.util.*
 /**
  * Provides most common commands to work with a repository.
  */
-class GithwController(var root: Path) {
+class BasicGithwController(override var root: Path): GithwController {
+
+    override val loadedCache: LoadedObjectsCache = LoadedObjectsCachePermanent()
 
     // independent caches: head, index, ignore
 
-    val gitDir = root.resolve(GIT_DIR_PATH)!!
+    override val gitDir = root.resolve(GIT_DIR_PATH)!!
     val initialized = Cache({ checkInitialized() })
 
-    val headCache = Cache({ Head.load(gitDir) }, initialized)
-    val head by headCache
+    val headCache = Cache({ Head.load(this) }, initialized)
+    override val head by headCache
 
     val commitCache = Cache({ head.commit }, headCache)
-    val commit by commitCache
+    override val commit by commitCache
 
     val treeCache = Cache({ commit.rootTree }, commitCache)
-    val tree get() = commit.rootTree
+    override val tree get() = commit.rootTree
 
-    val indexCache = Cache({ Index.load(gitDir) }, initialized)
-    val index by indexCache
+    val indexCache = Cache({ Index.load(this) }, initialized)
+    override val index by indexCache
 
     val ignoreCache = Cache({ Ignore.loadFromRoot(root) }, initialized)
-    val ignore by ignoreCache
+    override val ignore by ignoreCache
 
     val treeWithIndexCache = Cache({ index.applyToTree(tree) }, indexCache, treeCache)
-    val treeWithIndex by treeWithIndexCache
+    override val treeWithIndex by treeWithIndexCache
 
     /**
      * Create an empty repository in [root].
@@ -63,16 +70,20 @@ class GithwController(var root: Path) {
         createFile(gitDir.resolve(HEAD_PATH))
         createFile(gitDir.resolve(EXCLUDE_PATH))
 
-        val commit = Commit.create(gitDir,
+        val commit = createCommit(
                 message = "Initial commit",
                 parents = emptyList(),
-                rootTree = GitTree.create(gitDir, emptyMap()),
+                rootTree = createEmptyTree(),
                 date = Date()
         )
-        val branch = Branch(gitDir, "master", commit)
+        val branch = createBranch("master", commit)
         branch.writeToDisk()
-        Head.BranchPointer(gitDir, branch).writeToDisk()
+        writeToHead(branch)
     }
+
+    fun writeToHead(branch: Branch): Unit = Head.BranchPointer(this, branch).writeToDisk()
+
+    fun writeToHead(commit: Commit): Unit = Head.CommitPointer(this, commit).writeToDisk()
 
     @Synchronized
     private fun commit(newCommit: Commit) {
@@ -99,7 +110,7 @@ class GithwController(var root: Path) {
      */
     @Synchronized
     fun commit(message: String, date: Date = Date(), author: String = defaultAuthor()) {
-        commit(Commit.create(gitDir, message, listOf(commit), treeWithIndex, date, author))
+        commit(createCommit(message, listOf(commit), treeWithIndex, date, author))
     }
 
     @Synchronized
@@ -109,7 +120,7 @@ class GithwController(var root: Path) {
         }
         for (current in walkExclude(path, childrenFirst = true, onlyFiles = false)) {
             if (isRegularFile(current)) {
-                IndexEntry.RemoveFile(gitDir, root.relativize(current)).writeToDisk()
+                IndexEntry.RemoveFile(this, root.relativize(current)).writeToDisk()
             }
             if (isRegularFile(current) || FilesUtils.isEmptyDir(current)) {
                 delete(current)
@@ -142,10 +153,8 @@ class GithwController(var root: Path) {
     @Synchronized
     fun switchBranch(branchName: String) {
         checkUpToDate()
-        if (Index.load(gitDir).isNotEmpty()) {
-            throw IllegalArgumentException("Index is not empty")
-        }
-        Head.BranchPointer(gitDir, Branch.load(gitDir, branchName)).writeToDisk()
+
+        writeToHead(loadBranch(branchName))
         revert(root)
 
         headCache.reset()
@@ -208,7 +217,7 @@ class GithwController(var root: Path) {
         if (branchExist(branchName)) {
             throw IllegalArgumentException("A branch named '$branchName' already exists.")
         }
-        Branch(gitDir, branchName, commit).writeToDisk()
+        createBranch(branchName, commit).writeToDisk()
     }
 
     @Synchronized
@@ -220,7 +229,7 @@ class GithwController(var root: Path) {
     @Synchronized
     fun add(path: Path) {
         for (file in walkExclude(path, onlyFiles = true)) {
-            IndexEntry.EditFile(gitDir, root.relativize(file), readAllBytes(file)).writeToDisk()
+            IndexEntry.EditFile(this, root.relativize(file), readAllBytes(file)).writeToDisk()
         }
         indexCache.reset()
     }
@@ -263,7 +272,7 @@ class GithwController(var root: Path) {
                failOnConflict: Boolean = false ): List<Path> {
 
         checkUpToDate()
-        val otherCommit = Branch.load(gitDir, otherBranchName).commit
+        val otherCommit = loadBranch(otherBranchName).commit
         val otherTree = otherCommit.rootTree
         val newFiles = tree.mergeWith(otherTree, root)
 
@@ -282,7 +291,7 @@ class GithwController(var root: Path) {
 
         val parents = immutableListOf(commit, otherCommit)
         add(root)
-        commit(Commit.create(gitDir, msg, parents, treeWithIndex, Date(), author ?: defaultAuthor()))
+        commit(createCommit(msg, parents, treeWithIndex, Date(), author ?: defaultAuthor()))
         return newFiles
     }
 

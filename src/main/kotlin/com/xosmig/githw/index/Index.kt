@@ -1,6 +1,7 @@
 package com.xosmig.githw.index
 
 import com.xosmig.githw.INDEX_PATH
+import com.xosmig.githw.controller.GithwController
 import java.nio.file.Files.*
 import java.nio.file.Path
 import com.xosmig.githw.index.IndexEntry.*
@@ -17,11 +18,9 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
         /**
          * Remove redundant entries and create Index object, which contains all relevant index entries.
          */
-        fun load(gitDir: Path): Index {
-            val indexDir = gitDir.resolve(INDEX_PATH)
-
-            val (relevantNumbers, relevantEntries) = newDirectoryStream(indexDir)
-                    .map { Pair(it.fileName.toString().toInt(), IndexEntry.load(gitDir, it)) }
+        fun load(githw: GithwController): Index {
+            val (relevantNumbers, relevantEntries) = newDirectoryStream(githw.indexDir)
+                    .map { Pair(it.fileName.toString().toInt(), IndexEntry.load(githw, it)) }
                     .sortedBy { (num, _) -> num }
                     .associateBy { (_, entry) -> entry.pathToFile }
                     .values.unzip()
@@ -29,7 +28,7 @@ class Index private constructor(entries: List<IndexEntry>): List<IndexEntry> by 
             // remove irrelevant entries
             IntRange(1, relevantNumbers.max() ?: -1)
                     .filterNot { relevantNumbers.contains(it) }
-                    .forEach { delete(indexDir.resolve(it.toString())) }
+                    .forEach { delete(githw.indexDir.resolve(it.toString())) }
 
             return Index(relevantEntries)
         }

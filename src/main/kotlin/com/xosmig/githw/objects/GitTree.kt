@@ -1,32 +1,41 @@
 package com.xosmig.githw.objects
 
 import com.github.andrewoma.dexx.kollection.ImmutableMap
+import com.github.andrewoma.dexx.kollection.immutableMapOf
 import com.github.andrewoma.dexx.kollection.toImmutableMap
+import com.xosmig.githw.controller.GithwController
+import com.xosmig.githw.objects.GitObjectFromDisk.Companion.getObjectFromDisk
 import java.io.*
 import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
+import com.xosmig.githw.objects.GitFile.Companion.createFile
 
-class GitTree private constructor(gitDir: Path, val children: ImmutableMap<String, GitObject>, knownSha256: Sha256?):
-        GitFSObject(gitDir, knownSha256) {
+class GitTree private constructor( githw: GithwController,
+                                   val children: ImmutableMap<String, GitObject>,
+                                   knownSha256: Sha256? ): GitFSObject(githw, knownSha256) {
 
     companion object {
-        fun load(gitDir: Path, sha256: Sha256, ins: ObjectInputStream): GitTree {
+        internal fun GithwController.loadTree(sha256: Sha256, ins: ObjectInputStream): GitTree {
             val count = ins.readInt()
             val children = HashMap<String, GitObjectFromDisk>()
             for (i in 1..count) {
                 val name = ins.readObject() as String
-                children[name] = GitObject.getFromDisk(gitDir, ins.readObject() as Sha256)
+                children[name] = getObjectFromDisk(ins.readObject() as Sha256)
             }
-            return GitTree(gitDir, children.toImmutableMap(), sha256)
+            return GitTree(this, children.toImmutableMap(), sha256)
         }
 
-        fun create(gitDir: Path, children: ImmutableMap<String, GitObject>): GitTree {
-            return GitTree(gitDir, children, knownSha256 = null)
+        fun GithwController.createEmptyTree(): GitTree {
+            return GitTree(this, immutableMapOf(), knownSha256 = null)
         }
 
-        fun create(gitDir: Path, children: Map<String, GitObject>): GitTree {
-            return create(gitDir, children.toImmutableMap())
+        fun GithwController.createTree(children: ImmutableMap<String, GitObject>): GitTree {
+            return GitTree(this, children, knownSha256 = null)
+        }
+
+        fun GithwController.createTree(children: Map<String, GitObject>): GitTree {
+            return createTree(children.toImmutableMap())
         }
     }
 
@@ -95,7 +104,7 @@ class GitTree private constructor(gitDir: Path, val children: ImmutableMap<Strin
         val nextName = path.first().toString()
         val child = children[nextName]?.loaded
         val next: GitTree = when {
-            child == null && createMissing -> GitTree.create(gitDir, HashMap())
+            child == null && createMissing -> githw.createEmptyTree()
             child is GitTree -> child
             else -> return null
         }
@@ -106,13 +115,13 @@ class GitTree private constructor(gitDir: Path, val children: ImmutableMap<Strin
 
     fun putFile(path: Path, content: ByteArray): GitTree {
         return createPath(path.parent) {
-            it.putChild(path.fileName.toString(), GitFile.create(gitDir, content))
+            it.putChild(path.fileName.toString(), githw.createFile(content))
         }.modifiedTree
     }
 
-    private fun removeChild(name: String): GitTree = GitTree.create(gitDir, children.minus(name))
+    private fun removeChild(name: String): GitTree = githw.createTree(children.minus(name))
 
-    private fun putChild(name: String, child: GitObject): GitTree = GitTree.create(gitDir, children.put(name, child))
+    private fun putChild(name: String, child: GitObject): GitTree = githw.createTree(children.put(name, child))
 
     fun containsFile(file: Path): Boolean = resolve(file)?.loaded is GitFile
 
