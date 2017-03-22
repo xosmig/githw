@@ -62,6 +62,8 @@ class BasicGithwController(override var root: Path): GithwController {
 
             return res
         }
+
+        fun isInitializedIn(root: Path): Boolean = exists(root.resolve(GIT_DIR_PATH))
     }
 
     override val loadedCache: LoadedObjectsCache = LoadedObjectsCachePermanent()
@@ -210,8 +212,9 @@ class BasicGithwController(override var root: Path): GithwController {
     fun getUntrackedAndUpdatedFiles(path: Path): List<Path> {
         return walkExclude(path, onlyFiles = true)
                 .filter { isRegularFile(it) }
+                .map { root.relativize(it) }
                 .filter {
-                    val gitObj = treeWithIndex.resolve(root.relativize(it))?.loaded
+                    val gitObj = treeWithIndex.resolve(it)?.loaded
                     gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(path)
                 }
     }
@@ -219,7 +222,9 @@ class BasicGithwController(override var root: Path): GithwController {
     @Synchronized
     fun getUntrackedFiles(path: Path): List<Path> {
         return walkExclude(path, onlyFiles = true)
-                .filter { isRegularFile(it) && !treeWithIndex.containsFile(root.relativize(it)) }
+                .filter { isRegularFile(it) }
+                .map { root.relativize(it) }
+                .filter { !treeWithIndex.containsFile(it) }
     }
 
     /**
@@ -227,7 +232,7 @@ class BasicGithwController(override var root: Path): GithwController {
      */
     @Synchronized
     fun clean(path: Path) {
-        getUntrackedFiles(path).forEach(::delete)
+        getUntrackedFiles(path).forEach { delete(root.resolve(it)) }
         walkExclude(path, childrenFirst = true, onlyFiles = false)
                 .filter(::isEmptyDir)
                 .forEach(::delete)
@@ -279,7 +284,7 @@ class BasicGithwController(override var root: Path): GithwController {
      * Returns true if there is a githw repository in the current dir.
      */
     @Synchronized
-    fun isInitialized(): Boolean = exists(gitDir)
+    fun isInitialized(): Boolean = isInitializedIn(root)
 
     /**
      * Merge current branch with another.
