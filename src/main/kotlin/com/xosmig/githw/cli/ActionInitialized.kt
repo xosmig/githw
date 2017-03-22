@@ -14,7 +14,7 @@ internal abstract class ActionInitialized(description: String, primaryName: Stri
             current = current.parent
         }
         if (current == null) {
-            fail("${Paths.get("").toAbsolutePath()} is not a valid $APP_NAME repository")
+            fail("'${Paths.get("").toAbsolutePath()}' is not a valid $APP_NAME repository")
         }
         BasicGithwController(current)
     }

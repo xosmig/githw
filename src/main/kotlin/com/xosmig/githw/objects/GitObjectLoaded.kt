@@ -17,11 +17,11 @@ abstract class GitObjectLoaded internal constructor( githw: GithwController,
             knownSha256
         }
         ByteArrayOutputStream().use {
-            val byteStream = it
-            ObjectOutputStream(byteStream).use {
+            ObjectOutputStream(it).use {
                 writeContentTo(it)
             }
-            Sha256.get(byteStream.toByteArray())
+//            println(it.toByteArray())
+            Sha256.get(it.toByteArray())
         }
     }
 

@@ -1,9 +1,9 @@
 package com.xosmig.githw.utils
 
-import com.xosmig.githw.Ignore
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 import java.nio.file.Files.*
 import java.nio.file.Path
-import java.util.*
 
 object FilesUtils {
     /*fun deleteExclude(path: Path, ignore: Ignore) {
@@ -39,15 +39,20 @@ object FilesUtils {
     fun isEmptyDir(path: Path) = isDirectory(path) && newDirectoryStream(path).isEmpty()
 
     fun countSha256(path: Path): Sha256 {
-        var result = Sha256.get("")
-        if (isDirectory(path)) {
+        return if (isDirectory(path)) {
+            var result = Sha256.get("")
             for (next in newDirectoryStream(path).sorted()) {
                 result = result.add(next.fileName.toString())
                 result = result.add(countSha256(next))
             }
+            result
         } else {
-            result = result.add(readAllBytes(path))
+            ByteArrayOutputStream().use {
+                ObjectOutputStream(it).use {
+                    it.writeObject(readAllBytes(path))
+                }
+                Sha256.get(it.toByteArray())
+            }
         }
-        return result
     }
 }

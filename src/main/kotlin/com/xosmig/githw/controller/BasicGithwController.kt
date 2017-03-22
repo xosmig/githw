@@ -9,6 +9,7 @@ import com.xosmig.githw.objects.Commit.Companion.createCommit
 import com.xosmig.githw.objects.Commit.Companion.defaultAuthor
 import com.xosmig.githw.objects.GitFSObject
 import com.xosmig.githw.objects.GitFile
+import com.xosmig.githw.objects.GitObjectFromDisk.Companion.loadObject
 import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.refs.Branch
 import com.xosmig.githw.refs.Branch.Companion.createBranch
@@ -16,6 +17,7 @@ import com.xosmig.githw.refs.Branch.Companion.loadBranch
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
+import com.xosmig.githw.utils.Sha256
 import com.xosmig.githw.utils.cache
 import java.nio.file.Files.*
 import java.nio.file.Path
@@ -24,7 +26,7 @@ import java.util.*
 /**
  * Provides most common commands to work with a repository.
  */
-class BasicGithwController(override var root: Path): GithwController {
+class BasicGithwController(override val root: Path): GithwController {
 
     companion object {
         /**
@@ -112,6 +114,16 @@ class BasicGithwController(override var root: Path): GithwController {
     fun writeToHead(branch: Branch): Unit = Head.BranchPointer(this, branch).writeToDisk()
 
     fun writeToHead(commit: Commit): Unit = Head.CommitPointer(this, commit).writeToDisk()
+
+    @Synchronized
+    fun detachHead(sha256: Sha256) {
+        checkUpToDate()
+        val commit = loadObject(sha256) as? Commit
+                ?: throw IllegalArgumentException("Not a real commit hash: '$commit'")
+        writeToHead(commit)
+        headCache.reset()
+        revert(root)
+    }
 
     @Synchronized
     private fun commit(newCommit: Commit) {
@@ -215,7 +227,7 @@ class BasicGithwController(override var root: Path): GithwController {
                 .map { root.relativize(it) }
                 .filter {
                     val gitObj = treeWithIndex.resolve(it)?.loaded
-                    gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(path)
+                    gitObj !is GitFile || gitObj.sha256 != FilesUtils.countSha256(it)
                 }
     }
 
@@ -390,12 +402,13 @@ class BasicGithwController(override var root: Path): GithwController {
             if (ignore.contains(root.relativize(current))) {
                 return
             }
+
             if (isDirectory(current)) {
                 if (!childrenFirst && !onlyFiles) {
                     res.add(current)
                 }
                 for (next in newDirectoryStream(current)) {
-                    impl(next)
+                    impl(next.toAbsolutePath())
                 }
                 if (childrenFirst && !onlyFiles) {
                     res.add(current)
@@ -405,7 +418,7 @@ class BasicGithwController(override var root: Path): GithwController {
             }
         }
 
-        impl(start)
+        impl(start.toAbsolutePath())
         return res
     }
 }

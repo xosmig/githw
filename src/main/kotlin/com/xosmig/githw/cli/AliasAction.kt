@@ -13,7 +13,7 @@ internal class AliasAction : Action("Show aliases for all commands", "alias", "a
         for (group in ACTION_GROUPS) {
             group.printWithComments {
                 if (it.aliases.isEmpty()) {
-                    "no aliases"
+                    ""
                 } else {
                     val builder = StringBuilder()
                     builder.append(it.aliases.first())

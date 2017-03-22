@@ -12,9 +12,9 @@ class GitFile private constructor( githw: GithwController,
                                    knownSha256: Sha256? ): GitFSObject(githw, knownSha256) {
 
     companion object {
-        internal fun GithwController.loadFile(sha256: Sha256, ins: ObjectInputStream): GitFile {
+        internal fun load(githw: GithwController, sha256: Sha256, ins: ObjectInputStream): GitFile {
             val content = ins.readObject() as ByteArray
-            return GitFile(this, content, sha256)
+            return GitFile(githw, content, sha256)
         }
 
         fun GithwController.createFile(content: ByteArray):  GitFile {

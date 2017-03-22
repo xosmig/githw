@@ -16,14 +16,14 @@ class GitTree private constructor( githw: GithwController,
                                    knownSha256: Sha256? ): GitFSObject(githw, knownSha256) {
 
     companion object {
-        internal fun GithwController.loadTree(sha256: Sha256, ins: ObjectInputStream): GitTree {
+        internal fun load(githw: GithwController, sha256: Sha256, ins: ObjectInputStream): GitTree {
             val count = ins.readInt()
             val children = HashMap<String, GitObjectFromDisk>()
             for (i in 1..count) {
                 val name = ins.readObject() as String
-                children[name] = getObjectFromDisk(ins.readObject() as Sha256)
+                children[name] = githw.getObjectFromDisk(ins.readObject() as Sha256)
             }
-            return GitTree(this, children.toImmutableMap(), sha256)
+            return GitTree(githw, children.toImmutableMap(), sha256)
         }
 
         fun GithwController.createEmptyTree(): GitTree {

@@ -24,17 +24,17 @@ class Commit private constructor( githw: GithwController,
 
     companion object {
         @Throws(IOException::class)
-        internal fun GithwController.loadCommit(sha256: Sha256, ins: ObjectInputStream): Commit {
+        internal fun load(githw: GithwController, sha256: Sha256, ins: ObjectInputStream): Commit {
             val msg = ins.readObject() as String
             val parents = (ins.readObject() as List<*>)
                     .checkContent(Sha256::class)
-                    .map { getObjectFromDisk(it) }
+                    .map { githw.getObjectFromDisk(it) }
                     .toImmutableList()
-            val rootTree = loadObject(ins.readObject() as Sha256) as GitTree
+            val rootTree = githw.loadObject(ins.readObject() as Sha256) as GitTree
             val date = ins.readObject() as Date
             val author = ins.readObject() as String
 
-            return Commit(this, msg, parents, rootTree, date, author, sha256)
+            return Commit(githw, msg, parents, rootTree, date, author, sha256)
         }
 
         @Throws(IOException::class)

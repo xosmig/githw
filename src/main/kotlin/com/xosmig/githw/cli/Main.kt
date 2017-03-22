@@ -43,6 +43,7 @@ internal val ACTION_GROUPS = listOf(
                 BranchAction(),
                 CommitAction(),
                 SwitchAction(),
+                DetachAction(),
                 MergeAction()
         )
 )

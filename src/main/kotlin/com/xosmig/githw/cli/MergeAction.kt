@@ -50,4 +50,3 @@ internal class MergeAction : ActionInitialized("Join two branches together", "me
         }
     }
 }
-
