@@ -17,7 +17,7 @@ class Sha256 private constructor(val value: String): Serializable {
         fun get(content: String): Sha256 = get(content.toByteArray())
 
         fun fromString(str: String): Sha256 {
-            if (!str.matches(Regex("[0-9a-z]{64}"))) {
+            if (!str.matches(Regex("[0-9a-f]{64}"))) {
                 throw IllegalArgumentException("invalid sha256 hash: '$str'")
             }
             return Sha256(str)

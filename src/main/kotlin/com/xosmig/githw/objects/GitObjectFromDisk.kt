@@ -15,7 +15,7 @@ class GitObjectFromDisk private constructor(githw: GithwController, override val
     override fun writeToDisk() = Unit
 
     override val loaded: GitObjectLoaded
-        get() = githw.loadedCache.getOrPut(sha256) {
+        get() = githw.loadedBank.getOrPut(sha256) {
             newInputStream(objectFile).use {
                 ObjectInputStream(it).use {
                     val type = it.readObject() as String

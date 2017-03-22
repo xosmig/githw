@@ -35,4 +35,9 @@ class SwitchAndDetachTest : GithwTestClass() {
         assertThat(githw.commit, equalTo(aaCommit))
         assertThat(countSha256(dir), equalTo(aaHash))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun detachTestWithWrongSha256() {
+        githw.detach(githw.tree.sha256)
+    }
 }

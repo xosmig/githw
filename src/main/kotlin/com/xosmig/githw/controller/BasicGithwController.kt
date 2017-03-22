@@ -71,28 +71,28 @@ class BasicGithwController(root: Path): GithwController {
 
     override val root: Path = root.toAbsolutePath()
 
-    override val loadedCache: LoadedObjectsCache = LoadedObjectsCachePermanent()
+    override val loadedBank: LoadedObjectsBank = LoadedObjectsCachePermanent()
 
     // independent caches: head, index, ignore
 
     override val gitDir = root.resolve(GIT_DIR_PATH)!!
 
-    val headCache = cache { Head.load(this) }
+    private val headCache = cache { Head.load(this) }
     override val head by headCache
 
-    val commitCache = cache(headCache) { head.commit }
+    private val commitCache = cache(headCache) { head.commit }
     override val commit by commitCache
 
-    val treeCache = cache(commitCache) { commit.rootTree }
+    private val treeCache = cache(commitCache) { commit.rootTree }
     override val tree get() = commit.rootTree
 
-    val indexCache = cache { Index.load(this) }
+    private val indexCache = cache { Index.load(this) }
     override val index by indexCache
 
-    val ignoreCache = cache { Ignore.loadFromRoot(root) }
+    private val ignoreCache = cache { Ignore.loadFromRoot(root) }
     override val ignore by ignoreCache
 
-    val treeWithIndexCache = cache(indexCache, treeCache) { index.applyToTree(tree) }
+    private val treeWithIndexCache = cache(indexCache, treeCache) { index.applyToTree(tree) }
     override val treeWithIndex by treeWithIndexCache
 
     init { checkInitialized() }

@@ -8,7 +8,7 @@ import java.nio.file.Path
 
 interface GithwController {
 
-    val loadedCache: LoadedObjectsCache
+    val loadedBank: LoadedObjectsBank
 
     val root: Path
     val head: Head
