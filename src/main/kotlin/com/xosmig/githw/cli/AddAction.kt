@@ -12,6 +12,7 @@ internal class AddAction : ActionInitialized("Add file's content to the index", 
         if (args[0] == "--all" || args[0] == "-a") {
             checkArgNumber(args.size, atMost = 1)
             githw.addAll()
+            return
         }
 
         for (path in args) {
