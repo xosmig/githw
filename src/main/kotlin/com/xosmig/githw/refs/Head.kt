@@ -51,7 +51,7 @@ abstract class Head private constructor(protected val githw: GithwController) {
         override fun writeToDisk() {
             newOutputStream(githw.headPath).use {
                 ObjectOutputStream(it).use {
-                    it.writeObject(Branch::class.java.name)
+                    it.writeObject(Commit::class.java.name)
                     commit.writeToHead(it)
                 }
             }

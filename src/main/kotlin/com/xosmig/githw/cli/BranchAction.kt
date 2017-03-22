@@ -24,6 +24,7 @@ internal class BranchAction : ActionInitialized("List, create, or delete branche
     override fun run(args: List<String>) {
         if (args.isEmpty()) {
             showList()
+            return
         }
 
         val parser = DefaultParser()
@@ -33,6 +34,8 @@ internal class BranchAction : ActionInitialized("List, create, or delete branche
         } catch(e: ParseException) {
             fail("Parsing failed. Reason: ${e.message}")
         }
+
+        checkArgNumber(actual = line.options.size, exact = 1)
 
         if (line.hasOption(deleteOpt.opt)) {
             checkArgNumber(actual = args.size, exact = 2)

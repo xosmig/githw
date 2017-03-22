@@ -12,6 +12,7 @@ import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitObjectFromDisk.Companion.loadObject
 import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.refs.Branch
+import com.xosmig.githw.refs.Branch.Companion.branchExist
 import com.xosmig.githw.refs.Branch.Companion.createBranch
 import com.xosmig.githw.refs.Branch.Companion.loadBranch
 import com.xosmig.githw.refs.Head
@@ -95,25 +96,24 @@ class BasicGithwController(override val root: Path): GithwController {
     init { checkInitialized() }
 
     fun getLog(): List<Commit> {
-        val timeOut = IdentityHashMap<Commit, Int>()
-        var time = 0
+        val visited = HashSet<Commit>()
+        val res = ArrayList<Commit>()
 
         fun Commit.dfs() {
-            if (timeOut.containsKey(this)) { return }
-            time += 1
+            if (!visited.add(this)) { return }
             for (parent in parents) {
                 (parent.loaded as Commit).dfs()
             }
-            timeOut[this] = time
+            res.add(this)
         }
         commit.dfs()
 
-        return timeOut.toList().sortedBy { it.second }.map { it.first }
+        return res
     }
 
-    fun writeToHead(branch: Branch): Unit = Head.BranchPointer(this, branch).writeToDisk()
+    fun writeToHead(branch: Branch) { Head.BranchPointer(this, branch).writeToDisk() }
 
-    fun writeToHead(commit: Commit): Unit = Head.CommitPointer(this, commit).writeToDisk()
+    fun writeToHead(commit: Commit) { Head.CommitPointer(this, commit).writeToDisk() }
 
     @Synchronized
     fun detachHead(sha256: Sha256) {
@@ -122,7 +122,7 @@ class BasicGithwController(override val root: Path): GithwController {
                 ?: throw IllegalArgumentException("Not a real commit hash: '$commit'")
         writeToHead(commit)
         headCache.reset()
-        revert(root)
+        cleanAndRevertAll()
     }
 
     @Synchronized
@@ -171,9 +171,9 @@ class BasicGithwController(override val root: Path): GithwController {
     }
 
     /**
-     * Restore working tree files.
+     * Discard files' modifications.
      *
-     * @param[path] path to a directory or a file to restore.
+     * @param[path] path to a directory or a file to revert.
      */
     @Synchronized
     fun revert(path: Path) {
@@ -186,6 +186,18 @@ class BasicGithwController(override val root: Path): GithwController {
     }
 
     /**
+     * Discard all files' modifications.
+     */
+    @Synchronized
+    fun revertAll() { revert(root) }
+
+    @Synchronized
+    fun cleanAndRevertAll() {
+        revertAll()
+        cleanAll()
+    }
+
+    /**
      * Switch the current branch to [branchName] and updated the working directory.
      *
      * @param[branchName] a branch to switch to.
@@ -195,7 +207,7 @@ class BasicGithwController(override val root: Path): GithwController {
         checkUpToDate()
 
         writeToHead(loadBranch(branchName))
-        revert(root)
+        cleanAndRevertAll()
 
         headCache.reset()
     }
@@ -240,7 +252,7 @@ class BasicGithwController(override val root: Path): GithwController {
     }
 
     /**
-     * Remove all files which are not tracked nor ignored.
+     * Remove all files which are not tracked nor ignored and empty directories.
      */
     @Synchronized
     fun clean(path: Path) {
@@ -251,9 +263,7 @@ class BasicGithwController(override val root: Path): GithwController {
     }
 
     @Synchronized
-    fun branchExist(branchName: String): Boolean {
-        return exists(gitDir.resolve(BRANCHES_PATH).resolve(branchName))
-    }
+    fun cleanAll() { clean(root) }
 
     @Synchronized
     fun newBranch(branchName: String) {

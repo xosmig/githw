@@ -13,12 +13,19 @@ class Branch private constructor(private val githw: GithwController, val name: S
 
     companion object {
         fun GithwController.loadBranch(branchName: String): Branch {
+            if (!branchExist(branchName)) {
+                throw IllegalArgumentException("branch '$branchName' doesn't exist")
+            }
             newInputStream(branchesDir.resolve(branchName)).use {
                 ObjectInputStream(it).use {
                     val commit = loadObject(it.readObject() as Sha256) as Commit
                     return Branch(this, branchName, commit)
                 }
             }
+        }
+
+        fun GithwController.branchExist(branchName: String): Boolean {
+            return exists(branchesDir.resolve(branchName))
         }
 
         fun GithwController.createBranch(name: String, commit: Commit): Branch = Branch(this, name, commit)
