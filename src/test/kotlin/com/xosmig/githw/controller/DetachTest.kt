@@ -1,18 +1,16 @@
-package com.xosmig.githw.commands
+package com.xosmig.githw.controller
 
 import com.xosmig.githw.GithwTestClass
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import org.junit.Test
 import com.natpryce.hamkrest.assertion.*
 import com.natpryce.hamkrest.equalTo
-import java.nio.file.Files.*
 
-class SwitchAndDetachTest : GithwTestClass() {
+class DetachTest : GithwTestClass() {
 
     @Test
-    fun detachTest() {
+    fun integrationSimple() {
         val dir = root.resolve("dir")
-        createDirectories(dir)
 
         randomUtils.randomDirectory(dir)
         githw.addAll()

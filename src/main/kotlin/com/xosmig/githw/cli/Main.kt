@@ -4,7 +4,7 @@ import com.xosmig.githw.APP_NAME
 
 /**
  * Maximum allowed length of a sub-command's name.
- * Used to format lists of commands.
+ * Used to format lists of controller.
  */
 internal val MAX_COMMAND_LENGTH = 10
 

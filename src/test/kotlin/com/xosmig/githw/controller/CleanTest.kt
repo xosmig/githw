@@ -1,4 +1,4 @@
-package com.xosmig.githw.commands
+package com.xosmig.githw.controller
 
 import com.xosmig.githw.GithwTestClass
 import com.xosmig.githw.utils.toList

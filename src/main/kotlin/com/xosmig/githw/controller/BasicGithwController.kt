@@ -25,7 +25,7 @@ import java.nio.file.Path
 import java.util.*
 
 /**
- * Provides most common commands to work with a repository.
+ * Provides most common controller to work with a repository.
  */
 class BasicGithwController(root: Path): GithwController {
 
@@ -97,6 +97,7 @@ class BasicGithwController(root: Path): GithwController {
 
     init { checkInitialized() }
 
+    @Synchronized
     fun getLog(): List<Commit> {
         val visited = HashSet<Commit>()
         val res = ArrayList<Commit>()
@@ -113,16 +114,23 @@ class BasicGithwController(root: Path): GithwController {
         return res
     }
 
+    @Synchronized
     fun writeToHead(branch: Branch) { Head.BranchPointer(this, branch).writeToDisk() }
 
+    @Synchronized
     fun writeToHead(commit: Commit) { Head.CommitPointer(this, commit).writeToDisk() }
 
     @Synchronized
     fun detach(sha256: Sha256) {
-        checkUpToDate()
-        val commit = loadObject(sha256) as? Commit
+        val toCommit = loadObject(sha256) as? Commit
                 ?: throw IllegalArgumentException("Not a real commit hash: '$commit'")
-        writeToHead(commit)
+        detach(toCommit)
+    }
+
+    @Synchronized
+    fun detach(toCommit: Commit) {
+        checkUpToDate()
+        writeToHead(toCommit)
         headCache.reset()
         cleanAndRestoreAll()
     }
@@ -207,11 +215,9 @@ class BasicGithwController(root: Path): GithwController {
     @Synchronized
     fun switchBranch(branchName: String) {
         checkUpToDate()
-
         writeToHead(loadBranch(branchName))
-        cleanAndRestoreAll()
-
         headCache.reset()
+        cleanAndRestoreAll()
     }
 
     /**

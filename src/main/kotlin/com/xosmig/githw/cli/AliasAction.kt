@@ -1,9 +1,9 @@
 package com.xosmig.githw.cli
 
 /**
- * Action to show aliases for all commands.
+ * Action to show aliases for all controller.
  */
-internal class AliasAction : Action("Show aliases for all commands", "alias", "aliases") {
+internal class AliasAction : Action("Show aliases for all controller", "alias", "aliases") {
     override fun run(args: List<String>) {
         checkArgNumber(args.size, exact = 0)
 

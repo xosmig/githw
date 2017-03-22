@@ -14,7 +14,7 @@ internal abstract class Action(val description: String, val primaryName: String,
     val aliases: Set<String> = setOf(*aliases)
 
     /**
-     * Execute the commands with the given arguments.
+     * Execute the controller with the given arguments.
      *
      * @param[args] command line arguments for the sub-command (must not include sub-command name itself)
      *
