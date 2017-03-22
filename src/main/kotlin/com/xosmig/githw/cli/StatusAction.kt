@@ -3,7 +3,7 @@ package com.xosmig.githw.cli
 /**
  * Action to show a working tree status.
  */
-internal class StatusAction : Action("Show the working tree status", "status", "stat", "st") {
+internal class StatusAction : ActionInitialized("Show the working tree status", "status", "stat", "st") {
     override fun run(args: List<String>) {
         checkArgNumber(args.size, exact = 0)
 

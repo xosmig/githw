@@ -5,7 +5,7 @@ import java.nio.file.Paths
 /**
  * Action to add files' content to the index.
  */
-internal class AddAction : Action("Add file's content to the index", "add") {
+internal class AddAction : ActionInitialized("Add file's content to the index", "add") {
     override fun run(args: List<String>) {
         checkArgNumber(args.size, atLeast = 1)
 

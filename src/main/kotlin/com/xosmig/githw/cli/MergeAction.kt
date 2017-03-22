@@ -9,7 +9,7 @@ import org.apache.commons.cli.ParseException
 /**
  * Action to join two branches together.
  */
-internal class MergeAction : Action("Join two branches together", "merge") {
+internal class MergeAction : ActionInitialized("Join two branches together", "merge") {
     override fun run(args: List<String>) {
         checkArgNumber(args.size, atLeast = 1)
 

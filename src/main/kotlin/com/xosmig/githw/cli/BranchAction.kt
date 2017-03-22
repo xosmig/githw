@@ -8,7 +8,7 @@ import org.apache.commons.cli.ParseException
 /**
  * Action to list, create, or delete branches.
  */
-internal class BranchAction : Action("List, create, or delete branches", "branch", "br") {
+internal class BranchAction : ActionInitialized("List, create, or delete branches", "branch", "br") {
 
     private val options = Options()
     private val deleteOpt = Option("d", "delete", true, "Delete a branch")

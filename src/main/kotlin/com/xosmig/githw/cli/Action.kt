@@ -10,8 +10,6 @@ import java.nio.file.Paths
  */
 internal abstract class Action(val description: String, val primaryName: String, vararg aliases: String) {
 
-    protected val githw = BasicGithwController(Paths.get(""))  // FIXME
-
     /** Aliases can be used instead of [primaryName] to call a sub-command from console. */
     val aliases: Set<String> = setOf(*aliases)
 

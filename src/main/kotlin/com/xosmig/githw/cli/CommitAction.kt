@@ -5,7 +5,7 @@ import org.apache.commons.cli.*
 /**
  * Action to record changes to a repository.
  */
-internal class CommitAction : Action("Record changes to the repository", "commit", "cm") {
+internal class CommitAction : ActionInitialized("Record changes to the repository", "commit", "cm") {
 
     private val options = Options()
     private val messageOpt = Option("m", "message", true, "Use the given parameter as the commit message")

@@ -13,11 +13,5 @@ abstract class GithwTestClass {
     val root = fs.getPath("/$rootDirName")!!
     val randomUtils = RandomUtils()
     val gitDir = root.resolve(GIT_DIR_PATH)!!
-    val githw = BasicGithwController(root)
-
-    @Before
-    fun initFs() {
-        createDirectories(root)
-        githw.init()
-    }
+    val githw = BasicGithwController.init(root)
 }

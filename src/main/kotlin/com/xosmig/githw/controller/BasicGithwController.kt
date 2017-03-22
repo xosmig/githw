@@ -26,13 +26,51 @@ import java.util.*
  */
 class BasicGithwController(override var root: Path): GithwController {
 
+    companion object {
+        /**
+         * Create an empty repository in [root].
+         *
+         * @param[root] path for a new repository
+         * @return [BasicGithwController] over the new repository
+         */
+        fun init(root: Path): BasicGithwController {
+            val gitDir = root.resolve(GIT_DIR_PATH)
+            if (exists(gitDir)) {
+                throw IllegalArgumentException("$gitDir already exists")
+            }
+            createDirectories(gitDir)
+
+            createDirectories(gitDir.resolve(OBJECTS_PATH))
+            createDirectories(gitDir.resolve(BRANCHES_PATH))
+            createDirectories(gitDir.resolve(TAGS_PATH))
+            createDirectories(gitDir.resolve(INDEX_PATH))
+
+            createFile(gitDir.resolve(HEAD_PATH))
+            createFile(gitDir.resolve(EXCLUDE_PATH))
+
+            val res = BasicGithwController(root)
+
+            val commit = res.createCommit(
+                    message = "Initial commit",
+                    parents = emptyList(),
+                    rootTree = res.createEmptyTree(),
+                    date = Date()
+            )
+            val branch = res.createBranch("master", commit)
+            branch.writeToDisk()
+            res.writeToHead(branch)
+
+            return res
+        }
+    }
+
     override val loadedCache: LoadedObjectsCache = LoadedObjectsCachePermanent()
 
     // independent caches: head, index, ignore
 
     override val gitDir = root.resolve(GIT_DIR_PATH)!!
 
-    val headCache = cache { checkInitialized(); Head.load(this) }
+    val headCache = cache { Head.load(this) }
     override val head by headCache
 
     val commitCache = cache(headCache) { head.commit }
@@ -41,43 +79,16 @@ class BasicGithwController(override var root: Path): GithwController {
     val treeCache = cache(commitCache) { commit.rootTree }
     override val tree get() = commit.rootTree
 
-    val indexCache = cache { checkInitialized(); Index.load(this) }
+    val indexCache = cache { Index.load(this) }
     override val index by indexCache
 
-    val ignoreCache = cache { checkInitialized(); Ignore.loadFromRoot(root) }
+    val ignoreCache = cache { Ignore.loadFromRoot(root) }
     override val ignore by ignoreCache
 
     val treeWithIndexCache = cache(indexCache, treeCache) { index.applyToTree(tree) }
     override val treeWithIndex by treeWithIndexCache
 
-    /**
-     * Create an empty repository in [root].
-     */
-    @Synchronized
-    fun init() {
-        if (exists(gitDir)) {
-            throw IllegalArgumentException("$gitDir already exists")
-        }
-        createDirectories(gitDir)
-
-        createDirectories(gitDir.resolve(OBJECTS_PATH))
-        createDirectories(gitDir.resolve(BRANCHES_PATH))
-        createDirectories(gitDir.resolve(TAGS_PATH))
-        createDirectories(gitDir.resolve(INDEX_PATH))
-
-        createFile(gitDir.resolve(HEAD_PATH))
-        createFile(gitDir.resolve(EXCLUDE_PATH))
-
-        val commit = createCommit(
-                message = "Initial commit",
-                parents = emptyList(),
-                rootTree = createEmptyTree(),
-                date = Date()
-        )
-        val branch = createBranch("master", commit)
-        branch.writeToDisk()
-        writeToHead(branch)
-    }
+    init { checkInitialized() }
 
     fun getLog(): List<Commit> {
         val timeOut = IdentityHashMap<Commit, Int>()
