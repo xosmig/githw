@@ -131,7 +131,7 @@ class BasicGithwController(root: Path): GithwController {
         checkUpToDate()
         writeToHead(toCommit)
         headCache.reset()
-        cleanAndRestoreAll()
+        cleanAndResetAll()
     }
 
     @Synchronized
@@ -180,7 +180,7 @@ class BasicGithwController(root: Path): GithwController {
     }
 
     /**
-     * Restore working tree files.
+     * Reset working tree files.
      *
      * @param[path] path to a directory or a file to reset.
      */
@@ -191,17 +191,17 @@ class BasicGithwController(root: Path): GithwController {
         if (obj !is GitFSObject) {
             throw IllegalArgumentException("Bad object type to refresh: '${obj.javaClass.name}'")
         }
-        obj.restore(path)
+        obj.reset(path)
     }
 
     /**
-     * Restore all files.
+     * Reset all files.
      */
     @Synchronized
     fun resetAll() { reset(root) }
 
     @Synchronized
-    fun cleanAndRestoreAll() {
+    fun cleanAndResetAll() {
         resetAll()
         cleanAll()
     }
@@ -221,7 +221,7 @@ class BasicGithwController(root: Path): GithwController {
         }
         writeToHead(loadBranch(branchName))
         headCache.reset()
-        cleanAndRestoreAll()
+        cleanAndResetAll()
     }
 
     /**

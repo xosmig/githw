@@ -11,7 +11,7 @@ import java.nio.file.Files.*
 class ResetTest : GithwTestBase() {
 
     @Test
-    fun restoreSingleRemovedFile() {
+    fun resetSingleRemovedFile() {
         val filePath = root.resolve("file.txt")
         val content = "Hello, World".toByteArray()
         newOutputStream(filePath).use {
@@ -26,7 +26,7 @@ class ResetTest : GithwTestBase() {
     }
 
     @Test
-    fun restoreEmptyRootDirectory() {
+    fun resetEmptyRootDirectory() {
         randomUtils.randomDirectory(root)
         githw.add(root)
         githw.commit("test: random directory created.")
