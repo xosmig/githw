@@ -1,12 +1,12 @@
 package com.xosmig.githw.objects
 
-import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.GithwTestBase
 import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.objects.GitObjectFromDisk.Companion.loadObject
 import org.junit.Assert.*
 import org.junit.Test
 
-class GitObjectTest: GithwTestClass() {
+class GitObjectTest: GithwTestBase() {
 
     @Test
     fun saveAndLoadFilesSimple() {

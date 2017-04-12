@@ -9,7 +9,7 @@ import java.io.*
 import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
-import com.xosmig.githw.objects.GitFile.Companion.createFile
+import com.xosmig.githw.objects.GitFile.Companion.createFileObject
 
 class GitTree private constructor( githw: GithwController,
                                    val children: ImmutableMap<String, GitObject>,
@@ -115,7 +115,7 @@ class GitTree private constructor( githw: GithwController,
 
     fun putFile(path: Path, content: ByteArray): GitTree {
         return createPath(path.parent) {
-            it.putChild(path.fileName.toString(), githw.createFile(content))
+            it.putChild(path.fileName.toString(), githw.createFileObject(content))
         }.modifiedTree
     }
 

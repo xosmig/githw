@@ -1,6 +1,6 @@
 package com.xosmig.githw.utils
 
-import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.GithwTestBase
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import com.xosmig.githw.utils.FilesUtils.isEmptyDir
@@ -10,7 +10,7 @@ import org.junit.Assert.*
 import java.nio.file.Files.createDirectories
 import java.nio.file.Files.createFile
 
-class FilesUtilsTest: GithwTestClass() {
+class FilesUtilsTest: GithwTestBase() {
 
     @Test
     fun copyRecursiveFileTest() {

@@ -1,15 +1,14 @@
 package com.xosmig.githw.controller
 
 import com.xosmig.githw.GIT_DIR_PATH
-import com.xosmig.githw.GithwTestClass
-import com.xosmig.githw.controller.BasicGithwController
+import com.xosmig.githw.GithwTestBase
 import org.junit.Assert.*
 import org.junit.Test
 import com.xosmig.githw.utils.FilesUtils.copyRecursive
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import java.nio.file.Files.*
 
-class RestoreTest : GithwTestClass() {
+class ResetTest : GithwTestBase() {
 
     @Test
     fun restoreSingleRemovedFile() {
@@ -22,7 +21,7 @@ class RestoreTest : GithwTestClass() {
         githw.commit("test: file '$filePath' added")
 
         delete(filePath)
-        githw.restore(filePath)
+        githw.reset(filePath)
         assertArrayEquals(content, readAllBytes(filePath))
     }
 
@@ -37,7 +36,7 @@ class RestoreTest : GithwTestClass() {
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
         val newGithw = BasicGithwController(newRoot)
-        newGithw.restore(newRoot)
+        newGithw.reset(newRoot)
 
         assertEquals(sha256, countSha256(newRoot))
     }

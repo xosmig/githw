@@ -7,7 +7,7 @@ import java.io.Serializable
 /**
  * Type-safe wrapper for sha256 hash.
  */
-class Sha256 private constructor(val value: String): Serializable {
+class Sha256 private constructor(val value: String): Serializable, Comparable<Sha256> {
 
     companion object {
         val HASH_PREF_LENGTH = 2
@@ -44,4 +44,6 @@ class Sha256 private constructor(val value: String): Serializable {
     override fun hashCode(): Int = value.hashCode()
 
     override fun toString(): String = value
+
+    override fun compareTo(other: Sha256): Int = value.compareTo(other.value)
 }

@@ -17,7 +17,7 @@ class GitFile private constructor( githw: GithwController,
             return GitFile(githw, content, sha256)
         }
 
-        fun GithwController.createFile(content: ByteArray):  GitFile {
+        fun GithwController.createFileObject(content: ByteArray):  GitFile {
             return GitFile(this, content, knownSha256 = null)
         }
     }

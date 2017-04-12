@@ -2,14 +2,14 @@ package com.xosmig.githw.controller
 
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
-import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.GithwTestBase
 import com.xosmig.githw.utils.FilesUtils
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Files.exists
 
-class SwitchTest : GithwTestClass() {
+class SwitchTest : GithwTestBase() {
 
     @Test
     fun integrationSimple() {

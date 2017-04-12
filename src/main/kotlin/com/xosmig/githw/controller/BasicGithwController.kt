@@ -5,15 +5,15 @@ import com.xosmig.githw.*
 import com.xosmig.githw.index.Index
 import com.xosmig.githw.index.IndexEntry
 import com.xosmig.githw.objects.Commit
-import com.xosmig.githw.objects.Commit.Companion.createCommit
+import com.xosmig.githw.objects.Commit.Companion.createCommitObject
 import com.xosmig.githw.objects.Commit.Companion.defaultAuthor
 import com.xosmig.githw.objects.GitFSObject
 import com.xosmig.githw.objects.GitFile
 import com.xosmig.githw.objects.GitObjectFromDisk.Companion.loadObject
 import com.xosmig.githw.objects.GitTree.Companion.createEmptyTree
 import com.xosmig.githw.refs.Branch
-import com.xosmig.githw.refs.Branch.Companion.branchExist
-import com.xosmig.githw.refs.Branch.Companion.createBranch
+import com.xosmig.githw.refs.Branch.Companion.branchExists
+import com.xosmig.githw.refs.Branch.Companion.createBranchObject
 import com.xosmig.githw.refs.Branch.Companion.loadBranch
 import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.FilesUtils
@@ -53,13 +53,13 @@ class BasicGithwController(root: Path): GithwController {
 
             val res = BasicGithwController(root)
 
-            val commit = res.createCommit(
+            val commit = res.createCommitObject(
                     message = "Initial commit",
                     parents = emptyList(),
                     rootTree = res.createEmptyTree(),
                     date = Date()
             )
-            val branch = res.createBranch("master", commit)
+            val branch = res.createBranchObject("master", commit)
             branch.writeToDisk()
             res.writeToHead(branch)
 
@@ -70,12 +70,11 @@ class BasicGithwController(root: Path): GithwController {
     }
 
     override val root: Path = root.toAbsolutePath()
+    override val gitDir: Path = root.resolve(GIT_DIR_PATH)
 
     override val loadedBank: LoadedObjectsBank = LoadedObjectsCachePermanent()
 
     // independent caches: head, index, ignore
-
-    override val gitDir = root.resolve(GIT_DIR_PATH)!!
 
     private val headCache = cache { Head.load(this) }
     override val head by headCache
@@ -160,7 +159,7 @@ class BasicGithwController(root: Path): GithwController {
      */
     @Synchronized
     fun commit(message: String, date: Date = Date(), author: String = defaultAuthor()) {
-        commit(createCommit(message, listOf(commit), treeWithIndex, date, author))
+        commit(createCommitObject(message, listOf(commit), treeWithIndex, date, author))
     }
 
     @Synchronized
@@ -183,10 +182,10 @@ class BasicGithwController(root: Path): GithwController {
     /**
      * Restore working tree files.
      *
-     * @param[path] path to a directory or a file to restore.
+     * @param[path] path to a directory or a file to reset.
      */
     @Synchronized
-    fun restore(path: Path) {
+    fun reset(path: Path) {
         val obj = tree.resolve(root.relativize(path))?.loaded
                 ?: throw IllegalArgumentException("file '$path' is not tracked")
         if (obj !is GitFSObject) {
@@ -199,11 +198,11 @@ class BasicGithwController(root: Path): GithwController {
      * Restore all files.
      */
     @Synchronized
-    fun restoreAll() { restore(root) }
+    fun resetAll() { reset(root) }
 
     @Synchronized
     fun cleanAndRestoreAll() {
-        restoreAll()
+        resetAll()
         cleanAll()
     }
 
@@ -211,10 +210,15 @@ class BasicGithwController(root: Path): GithwController {
      * Switch the current branch to [branchName] and updated the working directory.
      *
      * @param[branchName] a branch to switch to.
+     * @param[createIfAbsent] if this parameter is set and the required branch doesn't exist,
+     * a new branch will be created
      */
     @Synchronized
-    fun switchBranch(branchName: String) {
+    fun switchBranch(branchName: String, createIfAbsent: Boolean = false) {
         checkUpToDate()
+        if (createIfAbsent && !branchExists(branchName)) {
+            newBranch(branchName)
+        }
         writeToHead(loadBranch(branchName))
         headCache.reset()
         cleanAndRestoreAll()
@@ -276,10 +280,10 @@ class BasicGithwController(root: Path): GithwController {
 
     @Synchronized
     fun newBranch(branchName: String) {
-        if (branchExist(branchName)) {
+        if (branchExists(branchName)) {
             throw IllegalArgumentException("A branch named '$branchName' already exists.")
         }
-        createBranch(branchName, commit).writeToDisk()
+        createBranchObject(branchName, commit).writeToDisk()
     }
 
     @Synchronized
@@ -353,7 +357,7 @@ class BasicGithwController(root: Path): GithwController {
 
         val parents = immutableListOf(commit, otherCommit)
         add(root)
-        commit(createCommit(msg, parents, treeWithIndex, Date(), author ?: defaultAuthor()))
+        commit(createCommitObject(msg, parents, treeWithIndex, Date(), author ?: defaultAuthor()))
         return newFiles
     }
 
@@ -377,7 +381,7 @@ class BasicGithwController(root: Path): GithwController {
     @Synchronized
     fun checkEmptyIndex() {
         if (index.isNotEmpty()) {
-            throw IllegalArgumentException("Index must be empty. Commit or restore changes")
+            throw IllegalArgumentException("Index must be empty. Commit or reset changes")
         }
     }
 
@@ -389,7 +393,7 @@ class BasicGithwController(root: Path): GithwController {
     @Synchronized
     fun checkNoUntrackedFiles() {
         if (getUntrackedAndUpdatedFiles(root).isNotEmpty()) {
-            throw IllegalArgumentException("Some changes are untracked. Commit or restore changes.")
+            throw IllegalArgumentException("Some changes are untracked. Commit or reset changes.")
         }
     }
 
