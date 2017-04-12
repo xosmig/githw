@@ -1,6 +1,7 @@
 package com.xosmig.githw.controller
 
 import com.xosmig.githw.GithwTestBase
+import com.xosmig.githw.refs.Head
 import com.xosmig.githw.utils.Sha256
 import java.nio.file.Files.*
 import java.nio.file.Path
@@ -48,6 +49,13 @@ class IntegrationTests : GithwTestBase() {
         val commits = HashMap<Int, TreeSet<Sha256>>()
         val grid = Grid(test)
 
+        fun getBranchNum() = (githw.head as Head.BranchPointer).branch.name.toInt()
+
+        fun commit() {
+            githw.commit(randomUtils.nextString())
+            commits[getBranchNum()]!!.add(githw.commit.sha256)
+        }
+
         githw.newBranch(0.toString())
         files[0] = TreeSet<Path>()
         commits[0] = TreeSet<Sha256>()
@@ -57,31 +65,39 @@ class IntegrationTests : GithwTestBase() {
             for (lineN in IntRange(0, grid.height - 1)) {
                 val c = grid[lineN][col]
                 val connectedLine = grid.goFrom(Point(lineN, col)).lineN
+                val curBranch = lineN.toString()
+                val connectedBranch = connectedLine.toString()
                 when (c) {
                     'N' -> { /*new branch*/
-                        githw.switchBranch(connectedLine.toString())
-                        githw.newBranch(lineN.toString())
+                        githw.switchBranch(connectedBranch)
+                        githw.newBranch(curBranch)
                         files[lineN] = TreeSet<Path>(files[connectedLine])
                         commits[lineN] = TreeSet<Sha256>(commits[connectedLine])
                     }
                     '*' -> { /*commit*/
-                        githw.switchBranch(lineN.toString())
+                        githw.switchBranch(curBranch)
                         val fileName = root.resolve(randomUtils.nextString())
                         createFile(fileName)
                         files[lineN]!!.add(fileName)
                         githw.addAll()
-                        githw.commit(randomUtils.nextString())
-                        commits[lineN]!!.add(githw.commit.sha256)
+                        commit()
                     }
                     'M' -> { /*merge*/
-                        githw.switchBranch(lineN.toString())
-                        githw.merge(connectedLine.toString())
+                        githw.switchBranch(curBranch)
+                        githw.merge(connectedBranch)
                         files[lineN]!!.addAll(files[connectedLine]!!)
                         commits[lineN]!!.addAll(commits[connectedLine]!!)
                         commits[lineN]!!.add(githw.commit.sha256)
                     }
+                    'R' -> { /*remove random file*/
+                        githw.switchBranch(curBranch)
+                        val file = files[lineN]!!.first()
+                        files[lineN]!!.remove(file)
+                        githw.remove(file)
+                        commit()
+                    }
                     'X' -> { /*delete branch*/
-                        githw.deleteBranch(lineN.toString())
+                        githw.deleteBranch(curBranch)
                         files.remove(lineN)
                         commits.remove(lineN)
                     }
@@ -111,6 +127,18 @@ class IntegrationTests : GithwTestBase() {
             |2: N-*-o-o-*-o-X   | |
             |       |     |     | |
             |4:     N---*-M-*-*-M-o
+        """.trimMargin()
+        interpretTest(script)
+    }
+
+    @Test
+    fun integrationTestWithRemove() {
+        val script = """
+            |0: o-*-*-M-----R---o-M
+            |   |     |         | |
+            |2: N---o-o-*-o-X   | |
+            |       |     |     | |
+            |4:     N-----M-R---M-o
         """.trimMargin()
         interpretTest(script)
     }
