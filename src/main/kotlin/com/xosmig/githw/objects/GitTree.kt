@@ -9,7 +9,7 @@ import java.io.*
 import java.nio.file.Path
 import java.util.*
 import com.xosmig.githw.utils.Sha256
-import com.xosmig.githw.objects.GitFile.Companion.createFile
+import com.xosmig.githw.objects.GitFile.Companion.createFileObject
 
 class GitTree private constructor( githw: GithwController,
                                    val children: ImmutableMap<String, GitObject>,
@@ -115,7 +115,7 @@ class GitTree private constructor( githw: GithwController,
 
     fun putFile(path: Path, content: ByteArray): GitTree {
         return createPath(path.parent) {
-            it.putChild(path.fileName.toString(), githw.createFile(content))
+            it.putChild(path.fileName.toString(), githw.createFileObject(content))
         }.modifiedTree
     }
 
@@ -153,13 +153,13 @@ class GitTree private constructor( githw: GithwController,
         }
     }
 
-    override fun restore(path: Path) {
+    override fun reset(path: Path) {
         for ((name, child) in children) {
             val loaded = child.loaded
             if (loaded !is GitFSObject) {
                 throw IllegalStateException("Unknown child type in `GitTree`: '${loaded.javaClass.name}'")
             }
-            loaded.restore(path.resolve(name))
+            loaded.reset(path.resolve(name))
         }
     }
 
@@ -176,11 +176,11 @@ class GitTree private constructor( githw: GithwController,
                 if (child != null) {
                     child.mergeWith(otherChild, path.resolve(name))
                 } else {
-                    otherChild.restore(path.resolve(name))
+                    otherChild.reset(path.resolve(name))
                 }
             }
         } else if (other is GitFile) {
-            other.restore(resolveConflictPath(path, newFiles))
+            other.reset(resolveConflictPath(path, newFiles))
         } else {
             throw IllegalStateException("Unknown file system type: '${loaded.javaClass.name}'")
         }

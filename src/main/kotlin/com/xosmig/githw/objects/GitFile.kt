@@ -17,14 +17,14 @@ class GitFile private constructor( githw: GithwController,
             return GitFile(githw, content, sha256)
         }
 
-        fun GithwController.createFile(content: ByteArray):  GitFile {
+        fun GithwController.createFileObject(content: ByteArray):  GitFile {
             return GitFile(this, content, knownSha256 = null)
         }
     }
 
     override fun writeContentTo(out: ObjectOutputStream) = out.writeObject(content)
 
-    override fun restore(path: Path) {
+    override fun reset(path: Path) {
         if (path.parent != null) {
             createDirectories(path.parent)
         }
@@ -39,6 +39,6 @@ class GitFile private constructor( githw: GithwController,
         if (other.sha256 == sha256) {
             return
         }
-        other.restore(resolveConflictPath(path, newFiles))
+        other.reset(resolveConflictPath(path, newFiles))
     }
 }

@@ -1,6 +1,7 @@
 package com.xosmig.githw.cli
 
 import com.xosmig.githw.APP_NAME
+import com.xosmig.githw.controller.GithwController
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
@@ -9,7 +10,8 @@ import org.apache.commons.cli.ParseException
 /**
  * Action to join two branches together.
  */
-internal class MergeAction : ActionInitialized("Join two branches together", "merge") {
+internal class MergeAction(customController: GithwController? = null) :
+        ActionInitialized(customController, "Join two branches together", "merge") {
     override fun run(args: List<String>) {
         checkArgNumber(args.size, atLeast = 1)
 

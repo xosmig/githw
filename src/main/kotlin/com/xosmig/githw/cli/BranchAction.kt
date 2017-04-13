@@ -1,5 +1,6 @@
 package com.xosmig.githw.cli
 
+import com.xosmig.githw.controller.GithwController
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
@@ -8,7 +9,8 @@ import org.apache.commons.cli.ParseException
 /**
  * Action to list, create, or delete branches.
  */
-internal class BranchAction : ActionInitialized("List, create, or delete branches", "branch", "br") {
+internal class BranchAction(customController: GithwController? = null) :
+        ActionInitialized(customController, "List, create, or delete branches", "branch", "br") {
 
     private val options = Options()
     private val deleteOpt = Option("d", "delete", true, "Delete a branch")

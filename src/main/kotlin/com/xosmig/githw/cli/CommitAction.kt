@@ -1,11 +1,13 @@
 package com.xosmig.githw.cli
 
+import com.xosmig.githw.controller.GithwController
 import org.apache.commons.cli.*
 
 /**
  * Action to record changes to a repository.
  */
-internal class CommitAction : ActionInitialized("Record changes to the repository", "commit", "cm") {
+internal class CommitAction(customController: GithwController? = null) :
+        ActionInitialized(customController, "Record changes to the repository", "commit", "cm") {
 
     private val options = Options()
     private val messageOpt = Option("m", "message", true, "Use the given parameter as the commit message")

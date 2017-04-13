@@ -1,12 +1,12 @@
 package com.xosmig.githw.controller
 
-import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.GithwTestBase
 import com.xosmig.githw.utils.FilesUtils.countSha256
 import org.junit.Test
 import com.natpryce.hamkrest.assertion.*
 import com.natpryce.hamkrest.equalTo
 
-class DetachTest : GithwTestClass() {
+class DetachTest : GithwTestBase() {
 
     @Test
     fun integrationSimple() {

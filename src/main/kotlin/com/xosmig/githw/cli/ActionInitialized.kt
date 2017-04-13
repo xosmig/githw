@@ -1,21 +1,16 @@
 package com.xosmig.githw.cli
 
-import com.xosmig.githw.APP_NAME
 import com.xosmig.githw.controller.BasicGithwController
-import com.xosmig.githw.controller.BasicGithwController.Companion.isInitializedIn
+import com.xosmig.githw.controller.GithwController
 import java.nio.file.Paths
 
-internal abstract class ActionInitialized(description: String, primaryName: String, vararg aliases: String):
-        Action(description, primaryName, *aliases) {
+internal abstract class ActionInitialized( customController: GithwController?,
+                                           description: String, primaryName: String,
+                                           vararg aliases: String): Action(description, primaryName, *aliases) {
 
-    val githw by lazy {
-        var current = Paths.get("").toAbsolutePath()
-        while (current != null && !isInitializedIn(current)) {
-            current = current.parent
-        }
-        if (current == null) {
-            fail("'${Paths.get("").toAbsolutePath()}' is not a valid $APP_NAME repository")
-        }
-        BasicGithwController(current)
+    companion object {
+        val defaultController by lazy { BasicGithwController.openRecursive(Paths.get("")) }
     }
+
+    val githw by lazy { customController ?: defaultController }
 }

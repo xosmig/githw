@@ -36,7 +36,7 @@ internal val ACTION_GROUPS = listOf(
         ActionGroup (
                 "reset changes in the working directory",
                 CleanAction(),
-                RestoreAction()
+                ResetAction()
         ),
         ActionGroup (
                 "work on history and branches",

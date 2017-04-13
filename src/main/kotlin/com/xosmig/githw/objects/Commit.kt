@@ -42,8 +42,8 @@ class Commit private constructor( githw: GithwController,
             return githw.loadObject(ins.readObject() as Sha256) as Commit
         }
 
-        fun GithwController.createCommit(message: String, parents: List<GitObject>, rootTree: GitTree,
-                   date: Date = Date(), author: String = defaultAuthor()): Commit {
+        fun GithwController.createCommitObject(message: String, parents: List<GitObject>, rootTree: GitTree,
+                                               date: Date = Date(), author: String = defaultAuthor()): Commit {
             return Commit(this, message, parents.toImmutableList(), rootTree, date, author, knownSha256 = null)
         }
 
@@ -54,7 +54,7 @@ class Commit private constructor( githw: GithwController,
               parents: ImmutableList<GitObject> = this.parents,
               rootTree: GitTree = this.rootTree,
               date: Date = this.date,
-              author: String = this.author ) = githw.createCommit(message, parents, rootTree, date, author)
+              author: String = this.author ) = githw.createCommitObject(message, parents, rootTree, date, author)
 
     override fun writeToDiskImpl() {
         super.writeToDiskImpl()

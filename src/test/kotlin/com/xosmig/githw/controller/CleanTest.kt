@@ -1,6 +1,6 @@
 package com.xosmig.githw.controller
 
-import com.xosmig.githw.GithwTestClass
+import com.xosmig.githw.GithwTestBase
 import com.xosmig.githw.utils.toList
 import org.junit.Test
 import org.junit.Assert.*
@@ -9,7 +9,7 @@ import java.nio.file.Path
 import java.util.*
 import java.util.stream.Collectors
 
-class CleanTest : GithwTestClass() {
+class CleanTest : GithwTestBase() {
 
     @Test
     fun cleanSubdirTest() {

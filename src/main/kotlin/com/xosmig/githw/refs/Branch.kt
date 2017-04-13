@@ -13,7 +13,7 @@ class Branch private constructor(private val githw: GithwController, val name: S
 
     companion object {
         fun GithwController.loadBranch(branchName: String): Branch {
-            if (!branchExist(branchName)) {
+            if (!branchExists(branchName)) {
                 throw IllegalArgumentException("branch '$branchName' doesn't exist")
             }
             newInputStream(branchesDir.resolve(branchName)).use {
@@ -24,11 +24,11 @@ class Branch private constructor(private val githw: GithwController, val name: S
             }
         }
 
-        fun GithwController.branchExist(branchName: String): Boolean {
+        fun GithwController.branchExists(branchName: String): Boolean {
             return exists(branchesDir.resolve(branchName))
         }
 
-        fun GithwController.createBranch(name: String, commit: Commit): Branch = Branch(this, name, commit)
+        fun GithwController.createBranchObject(name: String, commit: Commit): Branch = Branch(this, name, commit)
 
         internal fun loadFromHead(githw: GithwController, ins: ObjectInputStream): Branch {
             return githw.loadBranch(ins.readObject() as String)
