@@ -35,7 +35,7 @@ class ResetTest : GithwTestBase() {
         val newRoot = fs.getPath("/new/$rootDirName")
         createDirectories(newRoot)
         copyRecursive(root.resolve(GIT_DIR_PATH), newRoot.resolve(GIT_DIR_PATH))
-        val newGithw = BasicGithwController(newRoot)
+        val newGithw = BasicGithwController.open(newRoot)
         newGithw.reset(newRoot)
 
         assertEquals(sha256, countSha256(newRoot))
